@@ -8,7 +8,7 @@
 #undef BOOST_NO_CXX11_SCOPED_ENUMS
 
 CommandLineOpts::CommandLineOpts()
-    :mOptions(""), mMassifFileName(""), mSourceFileName("")
+    :mOptions(""), mMassifFile(""), mSourceFileName("")
 {
       setup();
 }
@@ -19,7 +19,7 @@ void CommandLineOpts::setup()
     options.add_options()
     ("help,h", "Display help menu")
     ("version,v", "Display program version")
-    ("massif,m", po::value<std::string>(&mMassifFileName), "Path to massif file")
+    ("massif,m", po::value<std::string>(&mMassifFile), "Path to massif file")
     ("source,s", po::value<std::string>(&mSourceFileName), "Path to source C/C++ file")
     ;
     mOptions.add(options);
@@ -33,7 +33,7 @@ CommandLineOpts::CommandLineStatus CommandLineOpts::parse(int argc, char** argv)
         po::store(po::parse_command_line(argc, argv, mOptions), vm);
         po::notify(vm);
 
-        if (vm.count("help")) {
+        if (vm.count("help") or vm.size() == 0) {
             std::cout << mOptions << "\n";
             return CommandLineStatus::eSTATUS_HELP;
         }
@@ -68,14 +68,17 @@ CommandLineOpts::CommandLineStatus CommandLineOpts::parse(int argc, char** argv)
 
 std::optional<std::string> CommandLineOpts::validateMassifFile()
 {
+    if (!boost::filesystem::exists(mMassifFile)) return std::optional<std::string>{mMassifFile + " doesn't exist"};
     using boost::spirit::x3::phrase_parse;
     using boost::spirit::x3::digit;
+    using boost::spirit::x3::lit;
     using boost::spirit::x3::ascii::space;
-    bool r = phrase_parse(std::begin(mMassifFileName), std::end(mMassifFileName),
+    boost::filesystem::path p(mMassifFile);
+    auto massifFileName = p.filename().string();
+    bool r = phrase_parse(std::begin(massifFileName), std::end(massifFileName),
         "massif.out." >> +(digit),  
         space
-    );
+    );   
     if (!r) return std::optional<std::string>{"Massif file must be in format massif.out.*"};
-    if (!boost::filesystem::exists(mMassifFileName)) return std::optional<std::string>{mMassifFileName + " doesn't exist"};
     return std::nullopt;
 }

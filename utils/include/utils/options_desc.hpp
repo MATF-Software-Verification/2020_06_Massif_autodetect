@@ -21,6 +21,11 @@ public:
 
     CommandLineStatus parse(int argc, char** argv);
 
+
+    inline std::string getMassifFile() const
+    {
+        return mMassifFile;
+    } 
 private:
     CommandLineOpts(const CommandLineOpts& other);
     CommandLineOpts& operator=(const CommandLineOpts& other);
@@ -34,9 +39,8 @@ private:
      * @brief Method for validation of massif file if its given as argument
      */
     std::optional<std::string> validateMassifFile();
-
 private:
     po::options_description mOptions;
-    std::string mMassifFileName;
+    std::string mMassifFile;
     std::string mSourceFileName;
 };

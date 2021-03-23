@@ -8,6 +8,10 @@
 int main(int argc, char** argv)
 {
     CommandLineOpts cmdLineOpts;
-    cmdLineOpts.parse(argc, argv);
+    if (cmdLineOpts.parse(argc, argv) != CommandLineOpts::CommandLineStatus::eSTATUS_OK) {
+        return 1;
+    }
+    
+    MassifParser massParser(cmdLineOpts.getMassifFile());
     return 0;
 }
