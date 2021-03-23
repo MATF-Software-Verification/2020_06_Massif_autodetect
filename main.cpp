@@ -13,5 +13,6 @@ int main(int argc, char** argv)
     }
     
     MassifParser massParser(cmdLineOpts.getMassifFile());
+    massParser.parse();
     return 0;
 }
