@@ -32,8 +32,15 @@ namespace massifRules
     auto const rPeak = lit("peak");
     auto const rHeapTree = lit("heap_tree=") >> (rEmpty | rDetailed | rPeak);
 
+    auto const rTreeHeader = lit("n") >> int_ >> lit(":") >> int_ >> *(x3::print) >> "\n";
+    auto const rTreeNode = lit("n") >> int_ >> lit(":") >> int_ >> 
+                            *(x3::print) >> lit(":") >> *(x3::print) >> 
+                            lit("(") >> *(x3::print) >> lit(":") >> int_ >>lit(")") >> "\n";
+    auto const rTreeStructure = rTreeHeader >> +(rTreeNode);
+
     auto const rSnapshot = rTitle >> rTime >> rMemHeapB >> rMemHeapExtra
-                            >> rMemStacks >> rHeapTree;
+                            >> rMemStacks >> rHeapTree >> -(rTreeStructure);
+
 
 
 } // namespace massifRules

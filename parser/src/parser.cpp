@@ -23,16 +23,23 @@ MassifParser::~MassifParser()
         mFile.close();
     }
 }
+
 MassifParser::ParserStatus MassifParser::parse()
 {
-    std::string res1;
-    std::pair<std::string, std::vector<int>> result;
+    
+    typedef std::tuple<int, int, std::string> header; //TreeHeader
+    typedef std::tuple<int, int, std::string, std::string, std::string, int> node;
+    typedef std::tuple<header, boost::optional<std::vector<node>>> tree;
+    typedef std::tuple<ulong, int, int, int, tree> snapshot;
+
+    std::pair<std::string, std::vector<snapshot>> result;
     bool parseStatus = x3::parse(mContent.str().begin(),
                                  mContent.str().end(),
                                  massifRules::rHeader
                                  >> 
                                  +(massifRules::rSnapshot)
                                 
-    , res1);
+    , result);
+
     return ParserStatus::ePARSER_OK;
 }
