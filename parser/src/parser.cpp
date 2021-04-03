@@ -3,12 +3,17 @@
 #include <parser/rules.hpp>
 #include <boost/spirit/home/x3.hpp>
 #include <boost/tuple/tuple.hpp>
-#include <optional>
 #include <boost/fusion/adapted/std_tuple.hpp>
 #include <boost/fusion/include/std_tuple.hpp>
+#include <tuple>
+
+#include <boost/fusion/sequence/intrinsic/at.hpp>
+#include <boost/fusion/include/at.hpp>
+#include <boost/variant.hpp>
 
 namespace x3 = boost::spirit::x3;
 namespace ascii = boost::spirit::x3::ascii;
+namespace fusion = boost::fusion;
 
 MassifParser::MassifParser(const std::string& path)
     :mDesc(""), mCmd(""), mTimeUnit(""), mFile(path)
@@ -29,58 +34,39 @@ MassifParser::~MassifParser()
 
 MassifParser::ParserStatus MassifParser::parse()
 {
-    using x3::lit;
-    using x3::int_;
-    using x3::ulong_;
+    using boost::spirit::x3::_attr; 
 
-  //  using massifHeader = std::tuple<std::string, std::string, std::string>; //rHeader
-  //  using treeHeader = std::tuple<int,int,std::string>; //rTreeHeader
-  //  using node = std::tuple<int, int, std::string, std::string, std::string, int>; //rTreeNode
-  //  using tree = x3::optional<std::tuple<treeHeader, std::vector<node>>>; //-(rTreeStructure)
-  //  using snapshot = std::tuple<int, ulong, int, int, int, tree>; //rSnapshot
+    auto header = [](auto& ctx){ 
+        auto attr = _attr(ctx);
+        mDesc = fusion::at_c<0>(attr);
+        mCmd = fusion::at_c<1>(attr);
+        mTimeUnit time_unit = fusion::at_c<2>(attr);
+        std::cout << mDesc << std::endl << mCmd << std::endl << mTimeUnit << std::endl;
+    };    
 
-    //using tree = std::optional<std::tuple<int,int,std::string, std::vector<std::tuple<int,int,std::string, std::string, std::string, int>>>>;
-    //using result = std::tuple<std::string, std::string, std::string,  //rHeader
-                            //std::vector<std::tuple<int,ulong,int,int,int, tree>>>; //rSnapshots
-    
-    // bez optional
-    using result = std::tuple<std::string, std::string, std::string,  //rHeader
-                             std::vector<std::tuple<int,ulong,int,int,int,
-                             int,int,std::string, std::vector<std::tuple<int,int,std::string, std::string, std::string, int>>>>>; //rSnapshots
-    
-    result res;
+    auto snapshots = [](auto& ctx){
+        auto attr = _attr(ctx);
+        auto title = fusion::at_c<0>(attr);
+        auto time = fusion::at_c<1>(attr);
+        auto memHeapB = fusion::at_c<2>(attr);
+        auto memHeapExtra = fusion::at_c<3>(attr);
+        auto memStacks = fusion::at_c<4>(attr);
 
-    auto const content = std::string("desc: (none) \
-    cmd: ./a.out \
-    time_unit: i \
-    #----------- \
-    snapshot=0 \
-    #----------- \
-    time=0 \
-    mem_heap_B=0 \
-    mem_heap_extra_B=0 \
-    mem_stacks_B=0 \
-    heap_tree=empty\
-    #----------- \
-    snapshot=1 \
-    #----------- \
-    time=139703 \
-    mem_heap_B=1000 \
-    mem_heap_extra_B=16 \
-    mem_stacks_B=0 \
-    heap_tree=empty ");
-    
+        std::cout << "Title: " << title << std::endl
+                  << "Time: "  << time  << std::endl
+                  << "memHeapB: " << memHeapB << std::endl
+                  << "memHeapExtra: " << memHeapExtra << std::endl
+                  << "memStacks: " << memStacks << std::endl << std::endl;
+        
+        //TODO
+        auto treeStructure = fusion::at_c<5>(attr); // boost::variant 
+    };
+
+
+    auto const content = MassifParser::mContent.str();
     bool parseStatus = x3::parse(content.begin(),
                                 content.end(),
-                                massifRules::rHeader >> *(massifRules::rSnapshot),
-                                res);
-/*
-    std::string first;
-    std::string second;
-    std::string third;
-    std::vector<std::tuple<int,ulong,int,int,int,tree>> fourth;
-    std::tie (first,second,third,fourth) = res;   // unpacking tuple into variables
-*/
-    
+                                massifRules::rHeader [header] >> *(massifRules::rSnapshot) [snapshots]);
+
     return ParserStatus::ePARSER_OK;
 }

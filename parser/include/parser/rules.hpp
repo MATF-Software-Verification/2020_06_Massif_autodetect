@@ -16,7 +16,8 @@ namespace massifRules
     
     auto const rHeader = rDesc >> rCmd >> rTimeUnit;
 
-
+    //--------------------------------------------------------
+    
     auto const rDashedLine = lit("#-----------") >> "\n";
     auto const rTitle = rDashedLine >> lit("snapshot=") >> int_ >> "\n" >> rDashedLine; 
 
@@ -24,25 +25,21 @@ namespace massifRules
     auto const rMemHeapB = lit("mem_heap_B=") >> int_ >> "\n";    
     auto const rMemHeapExtra = lit("mem_heap_extra_B=") >> int_ >> "\n";
     auto const rMemStacks = lit("mem_stacks_B=") >> int_ >> "\n";
-    
 
     auto const rEmpty = lit("empty");
-    //TODO nastavi
     auto const rDetailed = lit("detailed");
     auto const rPeak = lit("peak");
-    auto const rHeapTree = lit("heap_tree=") >> (rEmpty | rDetailed | rPeak);
+    auto const rHeapTree = lit("heap_tree=") >> (rEmpty | rDetailed | rPeak) >> "\n";
 
-    auto const rTreeHeader = lit("n") >> int_ >> lit(":") >> int_ >> *(x3::print) >> "\n";
-    auto const rTreeNode = lit("n") >> int_ >> lit(":") >> int_ >> 
-                            *(x3::print) >> lit(":") >> *(x3::print) >> 
-                            lit("(") >> *(x3::print) >> lit(":") >> int_ >>lit(")") >> "\n";
-    auto const rTreeStructure = rTreeHeader >> +(rTreeNode);
+    auto const rTreeHeader = lit("n") >> int_ >> lit(": ") >> int_ >> *(x3::print) >> "\n";
+    auto const rTreeNode = lit("n") >> int_ >> lit(": ") >> int_ >> 
+                            *(x3::print) >> *(x3::print) >>
+                            *(x3::print) >> "\n"; 
+                            
+    auto const rExtraLine = (lit("n") >> int_ >> lit(": ") >> *(x3::print) >> "\n") | "";
+    auto const rTreeStructure = (rTreeHeader >> *(rTreeNode) >> rExtraLine) | ""; 
 
     auto const rSnapshot = rTitle >> rTime >> rMemHeapB >> rMemHeapExtra
-                            >> rMemStacks >> rHeapTree >> -(rTreeStructure);
-
-
+                            >> rMemStacks >> rHeapTree >> rTreeStructure;
 
 } // namespace massifRules
-
-
