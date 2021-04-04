@@ -1,5 +1,4 @@
 #pragma once
-
 #include <boost/spirit/home/x3.hpp>
 
 namespace x3 = boost::spirit::x3;
@@ -16,7 +15,7 @@ namespace massifRules
     
     auto const rHeader = rDesc >> rCmd >> rTimeUnit;
 
-    //--------------------------------------------------------
+    //---------------------------------------------------------------------------------
     
     auto const rDashedLine = lit("#-----------") >> "\n";
     auto const rTitle = rDashedLine >> lit("snapshot=") >> int_ >> "\n" >> rDashedLine; 
@@ -31,15 +30,14 @@ namespace massifRules
     auto const rPeak = lit("peak");
     auto const rHeapTree = lit("heap_tree=") >> (rEmpty | rDetailed | rPeak) >> "\n";
 
+    auto const rSnapshotInfo = rTitle >> rTime >> rMemHeapB >> rMemHeapExtra
+                            >> rMemStacks >> rHeapTree;
+
     auto const rTreeHeader = lit("n") >> int_ >> lit(": ") >> int_ >> *(x3::print) >> "\n";
-    auto const rTreeNode = lit("n") >> int_ >> lit(": ") >> int_ >> 
-                            *(x3::print) >> *(x3::print) >>
-                            *(x3::print) >> "\n"; 
-                            
-    auto const rExtraLine = (lit("n") >> int_ >> lit(": ") >> *(x3::print) >> "\n") | "";
-    auto const rTreeStructure = (rTreeHeader >> *(rTreeNode) >> rExtraLine) | ""; 
+    auto const rTreeNode =  *x3::lit(" ") >> lit("n") >> int_ >> lit(": ") >> int_ >> 
+                            *(x3::print - ":") >> ":" >> *(x3::print - "(") >> 
+                            "(" >>  *(x3::print - ":") >> ":" >> int_ >> ")" >> "\n";                             
+    auto const rExtraLine =  *x3::lit(" ") >> (lit("n") >> int_ >> lit(": ") >> *(x3::print) >> "\n");
 
-    auto const rSnapshot = rTitle >> rTime >> rMemHeapB >> rMemHeapExtra
-                            >> rMemStacks >> rHeapTree >> rTreeStructure;
-
+    
 } // namespace massifRules

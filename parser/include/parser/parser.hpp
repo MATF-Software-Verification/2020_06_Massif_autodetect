@@ -17,12 +17,16 @@ public:
         ePARSER_OK,
         ePARSER_FAIL
     };
+    
     ParserStatus parse();
+    friend std::ostream& operator<< (std::ostream &out, const MassifParser &mp);
+    
 private:
     std::string mDesc;
     std::string mCmd;
     std::string mTimeUnit;
     std::vector<std::shared_ptr<Snapshot>> mSnapshots;
+    
     std::ifstream mFile;
     std::stringstream mContent;
     ParserStatus status = ParserStatus::ePARSER_OK;
