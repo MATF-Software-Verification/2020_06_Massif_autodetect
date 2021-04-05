@@ -13,5 +13,9 @@ int main(int argc, char** argv)
     }
     
     MassifParser massParser(cmdLineOpts.getMassifFile());
+    massParser.parse();
+
+    std::cout << massParser;
+
     return 0;
 }

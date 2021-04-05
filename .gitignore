@@ -3,3 +3,5 @@ massif.out.*
 xtmemory.*
 build/
 a.out
+parser/src/1.cpp
+samples/ulaz
