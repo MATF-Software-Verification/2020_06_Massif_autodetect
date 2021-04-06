@@ -5,12 +5,9 @@
 #include <boost/fusion/adapted/std_tuple.hpp>
 #include <boost/fusion/include/std_tuple.hpp>
 
-#include <boost/fusion/sequence/intrinsic/at.hpp>
-#include <boost/fusion/include/at.hpp>
 
 namespace x3 = boost::spirit::x3;
 namespace ascii = boost::spirit::x3::ascii;
-namespace fusion = boost::fusion;
 
 MassifParser::MassifParser(const std::string& path)
     :mDesc(""), mCmd(""), mTimeUnit(""), mFile(path)
@@ -43,7 +40,7 @@ MassifParser::ParserStatus MassifParser::parse()
     using boost::spirit::x3::_attr;
     std::shared_ptr<Snapshot> currentSnapshot;
 
-    auto snapshotInfo = [&](auto& ctx){
+    auto snapshotInfoAction = [&](auto& ctx){
         auto attr = _attr(ctx);
         auto title = fusion::at_c<0>(attr);
         auto time = fusion::at_c<1>(attr);
@@ -55,7 +52,7 @@ MassifParser::ParserStatus MassifParser::parse()
         this->mSnapshots.push_back(currentSnapshot);
     };
 
-    auto treeHeader = [&](auto& ctx) {
+    auto treeHeaderAction = [&](auto& ctx) {
         auto attr = _attr(ctx);
         auto number = fusion::at_c<0>(attr);
         auto bytes = fusion::at_c<1>(attr);
@@ -65,7 +62,7 @@ MassifParser::ParserStatus MassifParser::parse()
         currentSnapshot->changeHeaderInfo(number, bytes, message);
     };
 
-    auto treeNode = [&](auto& ctx) {
+    auto treeNodeAction = [&](auto& ctx) {
         auto attr = _attr(ctx);
 
         auto number = fusion::at_c<0>(attr);
@@ -78,7 +75,7 @@ MassifParser::ParserStatus MassifParser::parse()
         currentSnapshot->addTreeNode(number,bytes,location,function,file,line);
     };
 
-    auto extraLine = [](auto& ctx) {
+    auto extraLineAction = [](auto& ctx) {
         auto attr = _attr(ctx);
 
         auto number = fusion::at_c<0>(attr);
@@ -88,7 +85,7 @@ MassifParser::ParserStatus MassifParser::parse()
         //           << "ExtraLineMessage: " << message << std::endl << std::endl; ; 
     };
 
-    auto header = [&](auto& ctx){ 
+    auto headerAction = [&](auto& ctx){ 
         auto attr = _attr(ctx);
         this->mDesc = fusion::at_c<0>(attr);
         this->mCmd = fusion::at_c<1>(attr);
@@ -98,10 +95,10 @@ MassifParser::ParserStatus MassifParser::parse()
     auto const content = MassifParser::mContent.str();
     bool parseStatus = x3::parse(content.begin(),
                                 content.end(),
-                                massifRules::rHeader [header] >> 
-                                *(massifRules::rSnapshotInfo [snapshotInfo] >> 
-                                ((massifRules::rTreeHeader [treeHeader]
-                                    >> *(massifRules::rTreeNode [treeNode] | massifRules::rExtraLine [extraLine])) | "")));
+                                massifRules::rHeader [headerAction] >> 
+                                *(massifRules::rSnapshotInfo [snapshotInfoAction] >> 
+                                ((massifRules::rTreeHeader [treeHeaderAction]
+                                    >> *(massifRules::rTreeNode [treeNodeAction] | massifRules::rExtraLine [extraLineAction])) | "")));
 
     // rule = header >> *(snapshot)
     // snapshot = snapshotInfo >> optional(tree)
