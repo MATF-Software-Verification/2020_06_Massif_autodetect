@@ -13,7 +13,7 @@ namespace ascii = boost::spirit::x3::ascii;
 namespace fusion = boost::fusion;
 
 MassifParser::MassifParser(const std::string& path)
-    :mDesc(""), mCmd(""), mTimeUnit(""), mFile(path)
+    :mDesc(""), mCmd(""), mTimeUnit(""), mPeakSnapshot(nullptr) ,mFile(path)
 {
     if (!mFile.is_open()) {
         status = ParserStatus::ePARSER_FAIL;
@@ -50,9 +50,15 @@ MassifParser::ParserStatus MassifParser::parse()
         auto memHeapB = fusion::at_c<2>(attr);
         auto memHeapExtra = fusion::at_c<3>(attr);
         auto memStacks = fusion::at_c<4>(attr);
-  
+        std::string snapshotType = fusion::at_c<5>(attr);
+
         currentSnapshot = std::make_shared<Snapshot>(title, time, memHeapB, memHeapExtra, memStacks);
-        this->mSnapshots.push_back(currentSnapshot);
+        if(!snapshotType.compare("peak")){
+            this->mPeakSnapshot = currentSnapshot;
+        }
+        else{ 
+            this->mSnapshots.push_back(currentSnapshot);
+        }
     };
 
     auto treeHeader = [&](auto& ctx) {
@@ -60,7 +66,6 @@ MassifParser::ParserStatus MassifParser::parse()
         auto number = fusion::at_c<0>(attr);
         auto bytes = fusion::at_c<1>(attr);
         auto message = fusion::at_c<2>(attr);
-
 
         currentSnapshot->changeHeaderInfo(number, bytes, message);
     };

@@ -25,10 +25,10 @@ namespace massifRules
     auto const rMemHeapExtra = lit("mem_heap_extra_B=") >> int_ >> "\n";
     auto const rMemStacks = lit("mem_stacks_B=") >> int_ >> "\n";
 
-    auto const rEmpty = lit("empty");
-    auto const rDetailed = lit("detailed");
-    auto const rPeak = lit("peak");
-    auto const rHeapTree = lit("heap_tree=") >> (rEmpty | rDetailed | rPeak) >> "\n";
+    //auto const rEmpty = lit("empty");
+    //auto const rDetailed = lit("detailed");
+    //auto const rPeak = lit("peak");
+    auto const rHeapTree = lit("heap_tree=") >> *(x3::print) >> "\n";
 
     auto const rSnapshotInfo = rTitle >> rTime >> rMemHeapB >> rMemHeapExtra
                             >> rMemStacks >> rHeapTree;
