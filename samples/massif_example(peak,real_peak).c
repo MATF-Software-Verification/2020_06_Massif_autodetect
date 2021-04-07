@@ -11,39 +11,24 @@ void f(void)
   g();
 }
 
-void huge(void)
-{
-  malloc(15000);
-}
-
 int main(void)
 {
   int i;
   int* a[10];
 
-  for (i = 0; i < 5; i++) {
-    a[i] = malloc(1000);
-  }
-
-  void *m = malloc(5000);
-
-  for(;i<10;i++){
+  for (i = 0; i < 10; i++) {
     a[i] = malloc(1000);
   }
 
   f();
-  g(); 
-
-  huge();
+  g(); g();  
 
   for (i = 0; i < 10; i++) {
     free(a[i]);
   }
 
-  huge();
-
-  f();
-  g(); 
+  for(i =0;i<10;i++)  
+    g();
 
   return 0;
 }

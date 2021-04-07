@@ -43,7 +43,7 @@ void processSnapshots(std::vector<std::shared_ptr<Snapshot>> snapshots)
         if(diff > averageDifference * 1.25){
             outliers.push_back(snapshots[i+1]);
 
-            std::cout << diff << " bajtova je alocirano" ;
+            std::cout << diff << " bajtova je alocirano." << std::endl; 
             // provera mape
         }
     }
