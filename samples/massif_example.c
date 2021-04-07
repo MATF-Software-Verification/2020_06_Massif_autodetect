@@ -7,7 +7,7 @@ void g(void)
 
 void f(void)
 {
-  malloc(2000);
+  void* a = malloc(2000);
   g();
 }
 
@@ -21,29 +21,19 @@ int main(void)
   int i;
   int* a[10];
 
-  for (i = 0; i < 5; i++) {
-    a[i] = malloc(1000);
-  }
-
-  void *m = malloc(5000);
-
-  for(;i<10;i++){
+  for (i = 0; i < 10; i++) {
     a[i] = malloc(1000);
   }
 
   f();
   g(); 
-
-  huge();
 
   for (i = 0; i < 10; i++) {
     free(a[i]);
   }
 
-  huge();
-
-  f();
-  g(); 
+  void* x = malloc(1000);
+  free(x);
 
   return 0;
 }

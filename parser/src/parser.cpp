@@ -55,10 +55,9 @@ MassifParser::ParserStatus MassifParser::parse()
         currentSnapshot = std::make_shared<Snapshot>(title, time, memHeapB, memHeapExtra, memStacks);
         if(!snapshotType.compare("peak")){
             this->mPeakSnapshot = currentSnapshot;
-        }
-        else{ 
-            this->mSnapshots.push_back(currentSnapshot);
-        }
+        } 
+        this->mSnapshots.push_back(currentSnapshot);
+        
     };
 
     auto treeHeader = [&](auto& ctx) {

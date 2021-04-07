@@ -19,6 +19,8 @@ int main(int argc, char** argv)
     processLastSnapshot(massParser.mSnapshots.back());
     std::cout << "---------------------------------------------------------------------" << std::endl;
     processSnapshots(massParser.mSnapshots);
+    std::cout << "---------------------------------------------------------------------" << std::endl;
+    createMap(massParser.mSnapshots);
     
     return 0;
 }

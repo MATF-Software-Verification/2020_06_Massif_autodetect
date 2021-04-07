@@ -1,5 +1,7 @@
 #pragma once
 #include <parser/snapshot.hpp>
+#include <string>
+#include <vector>
 
 void processLastSnapshot(std::shared_ptr<Snapshot> snapshot)
 {
@@ -28,19 +30,25 @@ void processPeak(std::shared_ptr<Snapshot> peakSnapshot)
 void processSnapshots(std::vector<std::shared_ptr<Snapshot>> snapshots)
 {
     int sum = 0;
+    int counter = 0;
     for(int i=0; i<snapshots.size()-1; i++)
     {
         auto diff = snapshots[i+1].get()->memHeapB - snapshots[i].get()->memHeapB;
-        sum += diff;
+        if (diff > 0) {
+            sum += diff;
+            counter++;
+        }
     }
-    auto averageDifference = sum/(snapshots.size()-1);
+    auto averageDifference = sum/counter;
 
     std::cout << "#OUTLIERS#" << std::endl;
+    std::cout << averageDifference << std::endl;
+    
     std::vector<std::shared_ptr<Snapshot>> outliers;
     for(int i=0; i<snapshots.size()-1;i++)
     {
         auto diff = snapshots[i+1].get()->memHeapB - snapshots[i].get()->memHeapB;
-        if(diff > averageDifference * 1.25){
+        if(diff > averageDifference * 1.5){
             outliers.push_back(snapshots[i+1]);
 
             std::cout << diff << " bajtova je alocirano." << std::endl; 
@@ -49,17 +57,82 @@ void processSnapshots(std::vector<std::shared_ptr<Snapshot>> snapshots)
     }
 };
 
-std::map<int, std::vector<std::tuple<std::string, int, int, bool>>> createMap(std::vector<std::shared_ptr<Snapshot>> snapshots)
+std::shared_ptr<Snapshot> getFirstDetailedSnapshot(std::vector<std::shared_ptr<Snapshot>> snapshots)
 {
-    // bajtovi : [(funkcija, broj poziva, broj snapshota, dealociranje)]
-    std::map<int, std::vector<std::tuple<std::string, int, int, bool>>> mapa;
-
-    for(int i=1;i<snapshots.size();i++)
-    {
-        int diff = snapshots[i].get()->memHeapB - snapshots[i-1].get()->memHeapB;
-        //TODO
+    for(auto snapshot: snapshots) {
+        if (snapshot.get()->tree != nullptr) {
+            return snapshot;
+        }
     }
 
-    return mapa;
+    return nullptr;
 };
 
+std::shared_ptr<Snapshot> getLastDetailedSnapshot(std::vector<std::shared_ptr<Snapshot>> snapshots) 
+{
+    for (auto snapshot = snapshots.rbegin(); snapshot != snapshots.rend(); snapshot++) {
+        if ((*snapshot).get()->tree != nullptr) {
+            return *snapshot;
+        }
+    }
+
+    return nullptr;
+};
+
+std::vector<std::pair<std::string, int>> getPathOfBytes(std::shared_ptr<Tree> tree) {
+    if (tree.get()->children.size() == 0) {
+        std::string path = tree.get()->function + "(" + tree.get()->file + ":" + std::to_string(tree.get()->line) + ")";
+        return {std::make_pair(path, tree.get()->bytes)};
+    }
+
+    std::vector<std::pair<std::string, int>> returnValue;
+    for (auto child: tree.get()->children) {
+        std::vector<std::pair<std::string, int>> pairs = getPathOfBytes(child);
+        for (auto pair: pairs) {
+            std::string path = pair.first + " ->" + tree.get()->function + "(" + tree.get()->file + ":" + std::to_string(tree.get()->line) + ")";
+            returnValue.push_back(std::make_pair(path, pair.second));
+        }
+    }
+
+    return returnValue;
+};
+
+std::map<std::string, int> getMapByTree(std::shared_ptr<Tree> tree) 
+{
+
+    std::map<std::string, int> mapByTree;
+    for (auto child: tree.get()->children) {
+        std::vector<std::pair<std::string, int>> pathsOfBytes = getPathOfBytes(child);
+        for(auto x: pathsOfBytes) {
+            mapByTree[x.first] = x.second;
+        }
+    }
+
+    return mapByTree;
+};
+
+void createMap(std::vector<std::shared_ptr<Snapshot>> snapshots)
+{
+    std::map<std::string, int> map;
+
+    std::shared_ptr<Snapshot> firstDetailedSnapshot = getFirstDetailedSnapshot(snapshots);
+    std::shared_ptr<Snapshot> lastDetailedSnapshot = getLastDetailedSnapshot(snapshots);
+
+    std::map<std::string, int> dealokations;
+
+    for (int i = firstDetailedSnapshot.get()->title; i <= lastDetailedSnapshot.get()->title; i++) {
+        if (snapshots[i].get()->tree == nullptr)
+            continue;
+
+        std::map<std::string, int> newMap = getMapByTree(snapshots[i].get()->tree);
+        for (auto x: map) {
+            if (newMap.find(x.first) == newMap.end()) {
+                dealokations[x.first] = x.second;
+            }
+        }
+    }
+
+    
+
+
+};
