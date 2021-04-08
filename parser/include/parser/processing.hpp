@@ -27,58 +27,6 @@ void processPeak(std::shared_ptr<Snapshot> peakSnapshot)
     std::cout << *peakSnapshot.get();
 };
 
-void processSnapshots(std::vector<std::shared_ptr<Snapshot>> snapshots)
-{
-    int sum = 0;
-    int counter = 0;
-    for(int i=0; i<snapshots.size()-1; i++)
-    {
-        auto diff = snapshots[i+1].get()->memHeapB - snapshots[i].get()->memHeapB;
-        if (diff > 0) {
-            sum += diff;
-            counter++;
-        }
-    }
-    auto averageDifference = sum/counter;
-
-    std::cout << "#OUTLIERS#" << std::endl;
-    std::cout << averageDifference << std::endl;
-    
-    std::vector<std::shared_ptr<Snapshot>> outliers;
-    for(int i=0; i<snapshots.size()-1;i++)
-    {
-        auto diff = snapshots[i+1].get()->memHeapB - snapshots[i].get()->memHeapB;
-        if(diff > averageDifference * 1.5){
-            outliers.push_back(snapshots[i+1]);
-
-            std::cout << diff << " bajtova je alocirano." << std::endl; 
-            // provera mape
-        }
-    }
-};
-
-std::shared_ptr<Snapshot> getFirstDetailedSnapshot(std::vector<std::shared_ptr<Snapshot>> snapshots)
-{
-    for(auto snapshot: snapshots) {
-        if (snapshot.get()->tree != nullptr) {
-            return snapshot;
-        }
-    }
-
-    return nullptr;
-};
-
-std::shared_ptr<Snapshot> getLastDetailedSnapshot(std::vector<std::shared_ptr<Snapshot>> snapshots) 
-{
-    for (auto snapshot = snapshots.rbegin(); snapshot != snapshots.rend(); snapshot++) {
-        if ((*snapshot).get()->tree != nullptr) {
-            return *snapshot;
-        }
-    }
-
-    return nullptr;
-};
-
 std::vector<std::pair<std::string, int>> getPathOfBytes(std::shared_ptr<Tree> tree) {
     if (tree.get()->children.size() == 0) {
         std::string path = tree.get()->function + "(" + tree.get()->file + ":" + std::to_string(tree.get()->line) + ")";
@@ -109,6 +57,72 @@ std::map<std::string, int> getMapByTree(std::shared_ptr<Tree> tree)
     }
 
     return mapByTree;
+};
+
+void processSnapshots(std::vector<std::shared_ptr<Snapshot>> snapshots)
+{
+    int sum = 0;
+    int counter = 0;
+    for(int i=0; i<snapshots.size()-1; i++)
+    {
+        auto diff = snapshots[i+1].get()->memHeapB - snapshots[i].get()->memHeapB;
+        if (diff > 0) {
+            sum += diff;
+            counter++;
+        }
+    }
+    auto averageDifference = sum/counter;
+
+    std::cout << "#OUTLIERS#" << std::endl;
+    std::cout << averageDifference << std::endl;
+    
+    std::vector<std::shared_ptr<Snapshot>> outliers;
+    for(int i=0; i<snapshots.size()-1;i++)
+    {
+        auto diff = snapshots[i+1].get()->memHeapB - snapshots[i].get()->memHeapB;
+        if(diff > averageDifference * 1.5){
+            outliers.push_back(snapshots[i+1]);
+
+            std::cout << diff << " bajtova je alocirano:" << std::endl; 
+            if (snapshots[i+1].get()->tree != nullptr && snapshots[i].get()->tree != nullptr) {
+                std::map<std::string, int> beforeInfo = getMapByTree(snapshots[i].get()->tree);
+                std::map<std::string, int> currentInfo = getMapByTree(snapshots[i+1].get()->tree);
+                for (auto xCurrent: currentInfo) {
+                    auto xBefore = beforeInfo.find(xCurrent.first);
+                    if (xBefore == beforeInfo.end()) {
+                        std::cout << "  " << xCurrent.first << std::endl;
+                        break;
+                    }
+                    if (xCurrent.second - (*xBefore).second == diff) {
+                        std::cout << "  " << xCurrent.first << std::endl;
+                        break;
+                    }
+                }
+            }
+        }
+    }
+};
+
+std::shared_ptr<Snapshot> getFirstDetailedSnapshot(std::vector<std::shared_ptr<Snapshot>> snapshots)
+{
+    for(auto snapshot: snapshots) {
+        if (snapshot.get()->tree != nullptr) {
+            return snapshot;
+        }
+    }
+
+    return nullptr;
+};
+
+std::shared_ptr<Snapshot> getLastDetailedSnapshot(std::vector<std::shared_ptr<Snapshot>> snapshots) 
+{
+    for (auto snapshot = snapshots.rbegin(); snapshot != snapshots.rend(); snapshot++) {
+        if ((*snapshot).get()->tree != nullptr) {
+            return *snapshot;
+        }
+    }
+
+    return nullptr;
 };
 
 void createMap(std::vector<std::shared_ptr<Snapshot>> snapshots)

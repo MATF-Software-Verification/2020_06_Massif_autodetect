@@ -32,6 +32,8 @@ int main(void)
     free(a[i]);
   }
 
+  huge();
+
   void* x = malloc(1000);
   free(x);
 
