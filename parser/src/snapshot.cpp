@@ -17,22 +17,57 @@ void Snapshot::changeHeaderInfo(int number, int bytes, std::string message)
     this->treeHeaderMessage = message;
 }
 
+
+void printPath(std::shared_ptr<Tree> tree) 
+{
+    if(tree.get()->children.size() == 0)
+    {   
+        std::cout << std::endl;
+        std::cout <<  "    " << tree.get()->bytes << ": ";
+        std::cout << tree.get()->function << "(" << tree.get()->file << ":" << tree.get()->line << ")";
+    }
+    
+    for(auto child: tree.get()->children)
+    {
+        printPath(child);   
+        std::cout << "->";
+        std::cout << tree.get()->function  << "(" << tree.get()->file << ":" << tree.get()->line << ")";
+    }
+      
+};
+
 std::ostream& operator<< (std::ostream &out, const Snapshot &s)
 {
-    out << "Title: " << s.title << std::endl
+    /*out << "Title: " << s.title << std::endl
                 << "Time: " << s.time << std::endl
                 << "memHeapB: " << s.memHeapB << std::endl
                 << "memHeapExtra: " << s.memHeapExtra << std::endl
                 << "memStacks: " << s.memStacks << std::endl;
     out << "treeHeaderNumber: " << s.treeHeaderNumber << std::endl
                 << "treeHeaderBytes: " << s.treeHeaderBytes << std::endl
-                << "treeHeaderMessage: " << s.treeHeaderMessage << std::endl;  
-                    
+                << "treeHeaderMessage: " << s.treeHeaderMessage << std::endl;        
     if(s.tree!= nullptr)
         out << *s.tree.get();
-
     out << std::endl;
+    */
 
+   std::shared_ptr<Tree> tree = s.tree;
+
+    if (tree != nullptr){
+        std::cout << ": " << std::endl;
+        for(auto child: tree.get()->children)
+        {
+            std::cout << "  " << child.get()->bytes 
+                      << " bajtova alociranih u" 
+                      << child.get()->function 
+                      << "(" << child.get()->file << ":" << child.get()->line << "):";
+            
+            printPath(child);
+            std::cout << std::endl;
+        }   
+    } else {
+        std::cout << ". " << std::endl;
+    }
     return out;
 }
 

@@ -15,9 +15,8 @@ public:
     bool addChild(std::shared_ptr<Tree> child);
     std::ostream& printData(std::ostream &out, int level) const;
     friend std::ostream& operator<< (std::ostream &out, const Tree &t);
-
-private:
-    int number; //broj dece
+    
+    int number;
     int bytes;
     int line; 
     int counter;
@@ -27,7 +26,6 @@ private:
     std::string file;
     std::vector<std::shared_ptr<Tree>> children;
 };    
-
 
 class Snapshot
 {
@@ -47,7 +45,6 @@ public:
 
     friend std::ostream& operator<< (std::ostream &out, const Snapshot &s);
 
-private:
     int title;
     int time;
     int memHeapB;
@@ -57,7 +54,7 @@ private:
     int treeHeaderNumber;
     int treeHeaderBytes;
     std::string treeHeaderMessage;
-
-    std::shared_ptr<Tree> tree;
+    bool isPeak = false;
+    std::shared_ptr<Tree> tree; 
 };
 

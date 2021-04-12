@@ -1,9 +1,8 @@
 #include <iostream>
 
-
 #include <parser/parser.hpp>
 #include <utils/options_desc.hpp>
-
+#include <parser/processing.hpp>
 
 int main(int argc, char** argv)
 {
@@ -15,7 +14,13 @@ int main(int argc, char** argv)
     MassifParser massParser(cmdLineOpts.getMassifFile());
     massParser.parse();
 
-    std::cout << massParser;
-
+    processPeak(massParser.mPeakSnapshot);
+    std::cout << "---------------------------------------------------------------------" << std::endl;
+    processLastSnapshot(massParser.mSnapshots.back());
+    std::cout << "---------------------------------------------------------------------" << std::endl;
+    processSnapshots(massParser.mSnapshots);
+    std::cout << "---------------------------------------------------------------------" << std::endl;
+    createMap(massParser.mSnapshots);
+    
     return 0;
 }
