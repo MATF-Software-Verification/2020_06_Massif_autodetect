@@ -8,12 +8,13 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 add_subdirectory(parser)
 add_subdirectory(utils)
+add_subdirectory(analyzer)
 
 add_definitions( -DFIXIF_VERSION="${CMAKE_PROJECT_VERSION}" )
 add_executable(fixif 
 main.cpp
 ${UTILS_SOURCE})
-target_link_libraries(fixif parser 
+target_link_libraries(fixif parser analyzer
                 ${Boost_LIBRARIES}
                 ${Boost_FILESYSTEM_LIBRARY}
                 ${Boost_SYSTEM_LIBRARY}

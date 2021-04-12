@@ -54,7 +54,7 @@ MassifParser::ParserStatus MassifParser::parse()
 
         currentSnapshot = std::make_shared<Snapshot>(title, time, memHeapB, memHeapExtra, memStacks);
         if(!snapshotType.compare("peak")){
-            this->mPeakSnapshot = currentSnapshot;
+            currentSnapshot->isPeak = true;
         } 
         this->mSnapshots.push_back(currentSnapshot);
         
@@ -107,10 +107,7 @@ MassifParser::ParserStatus MassifParser::parse()
                                 ((massifRules::rTreeHeader [treeHeader]
                                     >> *(massifRules::rTreeNode [treeNode] | massifRules::rExtraLine [extraLine])) | "")));
 
-    // rule = header >> *(snapshot)
-    // snapshot = snapshotInfo >> optional(tree)
-    // tree = treeHeader >> *(treeNode | extraLine)
-
-    return ParserStatus::ePARSER_OK;
+    
+    return parseStatus ? ParserStatus::ePARSER_OK : ParserStatus::ePARSER_FAIL;
 };
 

@@ -2,7 +2,7 @@
 
 #include <parser/parser.hpp>
 #include <utils/options_desc.hpp>
-#include <parser/processing.hpp>
+#include <analyzer/analyzer.hpp>
 
 int main(int argc, char** argv)
 {
@@ -12,15 +12,14 @@ int main(int argc, char** argv)
     }
     
     MassifParser massParser(cmdLineOpts.getMassifFile());
-    massParser.parse();
-
-    processPeak(massParser.mPeakSnapshot);
-    std::cout << "---------------------------------------------------------------------" << std::endl;
-    processLastSnapshot(massParser.mSnapshots.back());
-    std::cout << "---------------------------------------------------------------------" << std::endl;
-    processSnapshots(massParser.mSnapshots);
-    std::cout << "---------------------------------------------------------------------" << std::endl;
-    createMap(massParser.mSnapshots);
+    if (MassifParser::ParserStatus::ePARSER_OK != massParser.parse()) {
+        std::cerr << "Failed parsing " << cmdLineOpts.getMassifFile() << std::endl;
+        return 1; 
+    }
+    
+    FixifAnalyzer analyzer(std::move(massParser.getSnapshots()));
+    analyzer.run();
+    
     
     return 0;
 }
