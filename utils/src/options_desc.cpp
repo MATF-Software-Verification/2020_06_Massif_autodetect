@@ -8,7 +8,7 @@
 #undef BOOST_NO_CXX11_SCOPED_ENUMS
 
 CommandLineOpts::CommandLineOpts()
-    :mOptions(""), mMassifFile(""), mSourceFileName("")
+    :mOptions(""), mMassifFile(""), mSourceFileName(""), mExecFileName("")
 {
       setup();
 }
@@ -21,6 +21,7 @@ void CommandLineOpts::setup()
     ("version,v", "Display program version")
     ("massif,m", po::value<std::string>(&mMassifFile), "Path to massif file")
     ("source,s", po::value<std::string>(&mSourceFileName), "Path to source C/C++ file")
+    ("executable,e", po::value<std::string>(&mExecFileName), "Path to executable file")
     ;
     mOptions.add(options);
 }
@@ -49,8 +50,24 @@ CommandLineOpts::CommandLineStatus CommandLineOpts::parse(int argc, char** argv)
                 std::cerr << "Error: " << errMsg.value() << '\n';
                 return CommandLineStatus::eSTATUS_FAIL;  
             }
+            return CommandLineStatus::eSTATUS_MASSIF;
         } else if (vm.count("source")) {
             //TODO Validation of source file
+            auto errMsg = validateSourceFile();
+            if (errMsg.has_value()) {
+                std::cerr << "Error: " << errMsg.value() << '\n';
+                return CommandLineStatus::eSTATUS_FAIL;
+            }       
+            return CommandLineStatus::eSTATUS_SOURCE;
+        } else if (vm.count("executable")) {
+            if (!boost::filesystem::exists(mExecFileName)) {
+                  std::cerr << "Error: " << mExecFileName << "does not exist. Check filepath once agin." << '\n';
+                return CommandLineStatus::eSTATUS_FAIL;
+            }
+            return CommandLineStatus::eSTATUS_EXE;
+        } else {
+            std::cout << mOptions << "\n";
+            return CommandLineStatus::eSTATUS_FAIL;
         }
     }
     catch (const std::exception& e) {
@@ -80,5 +97,23 @@ std::optional<std::string> CommandLineOpts::validateMassifFile()
         space
     );   
     if (!r) return std::optional<std::string>{"Massif file must be in format massif.out.*"};
+    return std::nullopt;
+}
+
+
+
+std::optional<std::string> CommandLineOpts::validateSourceFile()
+{
+    if (!boost::filesystem::exists(mSourceFileName)) return std::optional<std::string>{mSourceFileName + " doesn't exist"};
+    using boost::spirit::x3::phrase_parse;
+    using boost::spirit::x3::print;
+    using boost::spirit::x3::ascii::space;
+    using boost::spirit::x3::lit;
+
+    bool r = phrase_parse(std::begin(mSourceFileName), std::end(mSourceFileName),
+        +(print) >> (lit(".c")|lit(".cpp")|lit(".C")),  
+        space
+    );
+    if (!r) return std::optional<std::string>{"Neither C nor C++ source file has been recognized as an argument."};
     return std::nullopt;
 }
