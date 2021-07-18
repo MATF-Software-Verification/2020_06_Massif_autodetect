@@ -28,12 +28,12 @@ int main(int argc, char** argv)
         default:
             break;
     }
-
+    manager->execOperation();
     
-    MassifParser massParser(cmdLineOpts.getMassifFile());
-    massParser.parse();
+    // MassifParser massParser(cmdLineOpts.getMassifFile());
+    // massParser.parse();
 
-    std::cout << massParser;
+    // std::cout << massParser;
     delete manager;
     return 0;
 }
