@@ -3,7 +3,13 @@
 #include <cstdlib>
 #include <random>
 #include <limits>
-
+#include <clang/Driver/Compilation.h>
+#include <clang/Driver/Driver.h>
+// #include <clang/Frontend/DiagnosticOptions.h>
+#include <clang/Frontend/TextDiagnosticPrinter.h>
+#include <llvm/Support/Host.h>
+#include <llvm/Support/Program.h>
+#include <llvm/Support/raw_ostream.h>
 
 void ExecutorManager::execOperation()
 {
@@ -27,8 +33,7 @@ void ExecutorManager::execOperation()
 
 void SouceExecutorManager::execOperation()
 {
-    std::string compilerCmd;
-    
-
+    auto clangPath = llvm::sys::findProgramByName("clang");    
+    // std::cout << clangPath.get() << std::endl;
 
 }
