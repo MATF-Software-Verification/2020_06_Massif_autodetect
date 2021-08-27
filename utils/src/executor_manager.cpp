@@ -3,22 +3,15 @@
 #include <cstdlib>
 #include <random>
 #include <limits>
-#include <clang/Driver/Compilation.h>
-#include <clang/Driver/Driver.h>
-// #include <clang/Frontend/DiagnosticOptions.h>
-#include <clang/Frontend/TextDiagnosticPrinter.h>
-#include <llvm/Support/Host.h>
-#include <llvm/Support/Program.h>
-#include <llvm/Support/raw_ostream.h>
 
 void ExecutorManager::execOperation()
 {
     std::random_device rd;
     std::mt19937 generator(rd());
     std::uniform_int_distribution<int> dis(0, std::numeric_limits<int>::max());
-    int pid = dis(generator);
-    std::string massifOutFile = "massif.out." + std::to_string(pid);
-    std::string xtreeFile = "xtmemory." + std::to_string(pid);
+    mPid = dis(generator);
+    std::string massifOutFile = "massif.out." + std::to_string(mPid);
+    std::string xtreeFile = "xtmemory.kcg." + std::to_string(mPid);
     std::string execCmd = "valgrind --tool=massif --detailed-freq=1 --xtree-memory=full --xtree-memory-file="
                         + xtreeFile
                         + " --massif-out-file="
@@ -27,13 +20,9 @@ void ExecutorManager::execOperation()
                         + mFileName;
     std::cout << execCmd << "\n";
     system(execCmd.c_str());
-
 }
 
-
-void SouceExecutorManager::execOperation()
+int ExecutorManager::getPid()
 {
-    auto clangPath = llvm::sys::findProgramByName("clang");    
-    // std::cout << clangPath.get() << std::endl;
-
+    return mPid;
 }

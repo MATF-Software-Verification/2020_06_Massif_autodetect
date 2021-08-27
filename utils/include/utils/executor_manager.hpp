@@ -8,20 +8,9 @@ public:
         : mFileName(fileName) {}
     virtual ~ExecutorManager() {}
     virtual void execOperation();
+    int getPid();
+    
 protected:
     std::string mFileName;
+    int mPid;
 };
-
-
-
-class SouceExecutorManager : public ExecutorManager
-{
-public:
-    SouceExecutorManager(const std::string& fileName)
-        : ExecutorManager(fileName) {}
-    ~SouceExecutorManager() {}
-    void execOperation() override;
-};
-
-
-

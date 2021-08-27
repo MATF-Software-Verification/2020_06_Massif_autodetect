@@ -18,7 +18,6 @@ public:
         eSTATUS_VERSION,
         eSTATUS_FAIL,
         eSTATUS_MASSIF,
-        eSTATUS_SOURCE,
         eSTATUS_EXE
     };
 
@@ -48,15 +47,9 @@ private:
      */
     std::optional<std::string> validateMassifFile();
 
-    /** 
-     * @brief Method for validation of C/C++ source file if its given as argument
-     */
-    std::optional<std::string> validateSourceFile();
-    
 
 private:
     po::options_description mOptions;
     std::string mMassifFile;
-    std::string mSourceFileName;
     std::string mExecFileName;
 };
