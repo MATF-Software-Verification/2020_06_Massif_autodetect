@@ -38,7 +38,6 @@ void FixifAnalyzer::processLastSnapshot()
 /* pomocna funkcija (izdvojena zbog primene rekurzije) */
 std::vector<std::pair<std::string, int>> getPath(std::shared_ptr<Tree> tree) 
 {
-
     /* kreiraju se putanje koje sadrze funkcije i pozicije u fajlu koje alociraju odredjeni blok memorije */
     /* putanja u obliku funkcija1 (datoteka.c: broj linije) -> ... -> funkcijaN (datoteka.c:broj linije) */
 
@@ -57,7 +56,7 @@ std::vector<std::pair<std::string, int>> getPath(std::shared_ptr<Tree> tree)
 
         for (auto pair: pairs) 
         {
-            std::string path = pair.first + " ->" + tree->function + "(" + tree->file + ":" + std::to_string(tree->line) + ")";
+            std::string path = pair.first + " => " + tree->function + "(" + tree->file + ":" + std::to_string(tree->line) + ")";
             pathToBytes.push_back(std::make_pair(path, pair.second));
         }
     }
@@ -156,14 +155,11 @@ void FixifAnalyzer::processSnapshots()
 void FixifAnalyzer::run()
 {
     processPeak();
-    std::cout << "==================================================" << std::endl;
-    
+    std::cout << "-----------------------------------------------------------------------------" << std::endl;
     processLastSnapshot();
-    std::cout << "==================================================" << std::endl;
-    
+    std::cout << "-----------------------------------------------------------------------------" << std::endl;
     processSnapshots();
-    std::cout << "==================================================" << std::endl;
-    
+    std::cout << "-----------------------------------------------------------------------------" << std::endl;
 
     return;
 }
@@ -171,9 +167,8 @@ void FixifAnalyzer::run()
 
 void Analyzer::run()
 {
-    std::cout << "Analyze xtmemory.kcg.pid file: " << std::endl;  
-
-    for(auto& node : _nodes)
+    //std::cout << "Analyze xtmemory.kcg.pid file: " << std::endl;  
+    for(auto const& node : mNodes)
     {
         std::cout << *node.get() << std::endl;
     }

@@ -8,7 +8,7 @@
 #undef BOOST_NO_CXX11_SCOPED_ENUMS
 
 CommandLineOpts::CommandLineOpts()
-    :mOptions(""), mMassifFile(""), mSourceFileName("")
+    :mOptions(""), mMassifFile(""), mExecFileName("")
 {
       setup();
 }
@@ -20,7 +20,7 @@ void CommandLineOpts::setup()
     ("help,h", "Display help menu")
     ("version,v", "Display program version")
     ("massif,m", po::value<std::string>(&mMassifFile), "Path to massif file")
-    ("source,s", po::value<std::string>(&mSourceFileName), "Path to source C/C++ file")
+    ("executable,e", po::value<std::string>(&mExecFileName), "Path to executable file")
     ;
     mOptions.add(options);
 }
@@ -49,8 +49,16 @@ CommandLineOpts::CommandLineStatus CommandLineOpts::parse(int argc, char** argv)
                 std::cerr << "Error: " << errMsg.value() << '\n';
                 return CommandLineStatus::eSTATUS_FAIL;  
             }
-        } else if (vm.count("source")) {
-            //TODO Validation of source file
+            return CommandLineStatus::eSTATUS_MASSIF;
+        } else if (vm.count("executable")) {
+            if (!boost::filesystem::exists(mExecFileName)) {
+                  std::cerr << "Error: " << mExecFileName << "does not exist. Check filepath once agin." << '\n';
+                return CommandLineStatus::eSTATUS_FAIL;
+            }
+            return CommandLineStatus::eSTATUS_EXE;
+        } else {
+            std::cout << mOptions << "\n";
+            return CommandLineStatus::eSTATUS_FAIL;
         }
     }
     catch (const std::exception& e) {

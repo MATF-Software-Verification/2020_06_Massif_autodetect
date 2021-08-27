@@ -6,6 +6,7 @@
 #include <sstream>
 #include <parser/snapshot.hpp>
 #include <parser/node.hpp>
+#include <boost/algorithm/string.hpp>
 
 class MassifParser
 {
@@ -67,18 +68,18 @@ public:
     friend std::ostream& operator<< (std::ostream &out, const XtmemoryParser &mp);
     inline const XTreeMemory& getTree() {
         if (status == ParserStatus::ePARSER_OK) {
-            return _tree;
+            return xTree;
         } else {
-            static decltype(_tree) result{};
+            static decltype(xTree) result{};
             return result;
         }
     }
 
     void run();
     
-    XTreeMemory _tree;
+    XTreeMemory xTree;
 
-    std::ifstream _file;
-    std::stringstream _content;
+    std::ifstream xFile;
+    std::stringstream xContent;
     ParserStatus status = ParserStatus::ePARSER_OK;
 };

@@ -6,9 +6,6 @@
 #include <boost/fusion/adapted/std_tuple.hpp>
 #include <boost/fusion/include/std_tuple.hpp>
 
-#include <boost/fusion/sequence/intrinsic/at.hpp>
-#include <boost/fusion/include/at.hpp>
-
 namespace x3 = boost::spirit::x3;
 namespace ascii = boost::spirit::x3::ascii;
 namespace fusion = boost::fusion;
@@ -18,7 +15,7 @@ MassifParser::MassifParser(const std::string& path)
 {
     if (!mFile.is_open()) {
         status = ParserStatus::ePARSER_FAIL;
-        std::cerr << "Fail to open " << path << "\n";
+        std::cerr << "Failed to open " << path << "\n";
     }
     mContent << mFile.rdbuf();
 }
@@ -45,9 +42,8 @@ MassifParser::ParserStatus MassifParser::parse()
 {
     using boost::spirit::x3::_attr;
     std::shared_ptr<Snapshot> currentSnapshot;
-
-    auto snapshotInfo = [&](auto& ctx)
-    {
+    using namespace boost;
+    auto snapshotInfoAction = [&](auto& ctx){
         auto attr = _attr(ctx);
         auto title = fusion::at_c<0>(attr);
         auto time = fusion::at_c<1>(attr);
@@ -65,8 +61,7 @@ MassifParser::ParserStatus MassifParser::parse()
         }
     };
 
-    auto treeHeader = [&](auto& ctx) 
-    {
+    auto treeHeaderAction = [&](auto& ctx) {
         auto attr = _attr(ctx);
         auto number = fusion::at_c<0>(attr);
         auto bytes = fusion::at_c<1>(attr);
@@ -75,22 +70,22 @@ MassifParser::ParserStatus MassifParser::parse()
         currentSnapshot->changeHeaderInfo(number, bytes, message);
     };
 
-    auto treeNode = [&](auto& ctx) 
-    {
+    auto treeNodeAction = [&](auto& ctx) {
         auto attr = _attr(ctx);
 
         auto number = fusion::at_c<0>(attr);
         auto bytes = fusion::at_c<1>(attr);
         auto location = fusion::at_c<2>(attr);
         auto function = fusion::at_c<3>(attr);
+        boost::algorithm::trim(function);
+
         auto file = fusion::at_c<4>(attr);
         auto line = fusion::at_c<5>(attr);
 
         currentSnapshot->addTreeNode(number,bytes,location,function,file,line);
     };
 
-    auto extraLine = [](auto& ctx) 
-    {
+    auto extraLineAction = [](auto& ctx) {
         auto attr = _attr(ctx);
 
         auto number = fusion::at_c<0>(attr);
@@ -100,8 +95,7 @@ MassifParser::ParserStatus MassifParser::parse()
         //           << "ExtraLineMessage: " << message << std::endl << std::endl; ; 
     };
 
-    auto header = [&](auto& ctx)
-    { 
+    auto headerAction = [&](auto& ctx){ 
         auto attr = _attr(ctx);
         this->mDesc = fusion::at_c<0>(attr);
         this->mCmd = fusion::at_c<1>(attr);
@@ -111,15 +105,14 @@ MassifParser::ParserStatus MassifParser::parse()
     auto const content = MassifParser::mContent.str();
     bool parseStatus = x3::parse(content.begin(),
                                 content.end(),
-                                massifRules::rHeader [header] >> 
-                                *(massifRules::rSnapshotInfo [snapshotInfo] >> 
-                                ((massifRules::rTreeHeader [treeHeader]
-                                    >> *(massifRules::rTreeNode [treeNode] | massifRules::rExtraLine [extraLine])) | "")));
+                                massifRules::rHeader [headerAction] >> 
+                                *(massifRules::rSnapshotInfo [snapshotInfoAction] >> 
+                                ((massifRules::rTreeHeader [treeHeaderAction]
+                                    >> *(massifRules::rTreeNode [treeNodeAction] | massifRules::rExtraLine [extraLineAction])) | "")));
 
     return parseStatus ? ParserStatus::ePARSER_OK : ParserStatus::ePARSER_FAIL;
 
 };
-
 
 
 /* Dve globalne mape koja preslikavaju: 
@@ -131,19 +124,19 @@ auto functionNameMap = std::map<int, std::string>();
 auto fileNameMap = std::map<int, std::string>();
 
 XtmemoryParser::XtmemoryParser(const std::string& path)
-    :_file(path)
+    :xFile(path)
 {
-    if (!_file.is_open()) {
+    if (!xFile.is_open()) {
         status = ParserStatus::ePARSER_FAIL;
         std::cerr << "Fail to open " << path << "\n";
     }
-    _content << _file.rdbuf();
+    xContent << xFile.rdbuf();
 }
 
 XtmemoryParser::~XtmemoryParser()
 {
-    if (_file.is_open()) {
-        _file.close();
+    if (xFile.is_open()) {
+        xFile.close();
     }
 }
 
@@ -151,7 +144,7 @@ XtmemoryParser::~XtmemoryParser()
 std::ostream& operator<< (std::ostream &out, const XtmemoryParser &xtmp)
 {
    
-    for(auto node: xtmp._tree._nodes){
+    for(auto node: xtmp.xTree.xNodes){
         out << *node.get();
     }
 
@@ -163,7 +156,7 @@ XtmemoryParser::ParserStatus XtmemoryParser::parse()
     using boost::spirit::x3::_attr;
     
     std::shared_ptr<Node> currentNode;
-    auto const content = XtmemoryParser::_content.str();
+    auto const content = XtmemoryParser::xContent.str();
 
     auto subAlloc = [&](auto& ctx)
     { 
@@ -179,11 +172,12 @@ XtmemoryParser::ParserStatus XtmemoryParser::parse()
 
         auto functionNumber =  fusion::at_c<2>(attr);
         auto functionName = fusion::at_c<3>(attr);  
+        boost::algorithm::trim(functionName);
         if (functionName == ""){
             functionName = functionNameMap[fileNumber];
         } else {
             functionNameMap[functionNumber] = functionName;
-        }
+        }   
 
         auto lineNumber =  fusion::at_c<4>(attr);
 
@@ -219,7 +213,7 @@ XtmemoryParser::ParserStatus XtmemoryParser::parse()
         auto node = std::make_shared<Node>(fileName, functionName, lineNumber, allocation);
         node->setChild(child);
 
-        this->_tree.addNode(node);
+        this->xTree.addNode(node);
     };   
 
     auto directAlloc = [&](auto& ctx)
@@ -252,19 +246,19 @@ XtmemoryParser::ParserStatus XtmemoryParser::parse()
         allocation.push_back(fusion::at_c<10>(attr));        
         
         auto node = std::make_shared<Node>(fileName, functionName, lineNumber, allocation);
-        this->_tree.addNode(node);
+        this->xTree.addNode(node);
     };
     
     auto totals = [&](auto& ctx)
     {
         auto attr = _attr(ctx);
 
-        this->_tree._totals.push_back(fusion::at_c<0>(attr));
-        this->_tree._totals.push_back(fusion::at_c<1>(attr));
-        this->_tree._totals.push_back(fusion::at_c<2>(attr));
-        this->_tree._totals.push_back(fusion::at_c<3>(attr));
-        this->_tree._totals.push_back(fusion::at_c<4>(attr));
-        this->_tree._totals.push_back(fusion::at_c<5>(attr));
+        this->xTree.xTotals.push_back(fusion::at_c<0>(attr));
+        this->xTree.xTotals.push_back(fusion::at_c<1>(attr));
+        this->xTree.xTotals.push_back(fusion::at_c<2>(attr));
+        this->xTree.xTotals.push_back(fusion::at_c<3>(attr));
+        this->xTree.xTotals.push_back(fusion::at_c<4>(attr));
+        this->xTree.xTotals.push_back(fusion::at_c<5>(attr));
     };
 
     bool parseStatus = x3::parse(content.begin(), 

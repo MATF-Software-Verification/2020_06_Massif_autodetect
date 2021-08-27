@@ -3,29 +3,28 @@
 
 void XTreeMemory::addNode(std::shared_ptr<Node> node)
 {
-    this->_nodes.push_back(node);
+    this->xNodes.push_back(node);
 }
 
 
 bool Node::setChild(std::shared_ptr<Node> child)
 {
-    this->_childNode = child;
+    this->xChildNode = child;
 }
 
 std::ostream& operator<< (std::ostream &out, const Node &t)
 {
-    out << t._file << ":" << t._function << ":" << t._line << std::endl;
-    if (t._childNode != nullptr){
-        out << "\t";
-        out << *(t._childNode.get());
+    if (t.xAllocation.size() > 0){
+        out << "curB:" << t.xAllocation[0] << " curBk:" << t.xAllocation[1] 
+              << " totB:" << t.xAllocation[2] << " totBk:" << t.xAllocation[3] 
+              << " totFdB:" << t.xAllocation[4] << " totFdBk:" << t.xAllocation[5] << std::endl;
     }
 
-    if (t._allocation.size() > 0){
-        out << "curB:" << t._allocation[0] << " curBk:" << t._allocation[1] 
-              << " totB:" << t._allocation[2] << " totBk:" << t._allocation[3] 
-              << " totFdB:" << t._allocation[4] << " totFdBk:" << t._allocation[5] << std::endl;
+    out << t.xFile << ":" << t.xFunction << ":" << t.xLine << std::endl;
+    if (t.xChildNode != nullptr){
+        out << "\t";
+        out << *(t.xChildNode.get());
     }
-    
 
     return out;
 }

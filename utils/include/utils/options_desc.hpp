@@ -16,7 +16,9 @@ public:
         eSTATUS_OK,
         eSTATUS_HELP,
         eSTATUS_VERSION,
-        eSTATUS_FAIL
+        eSTATUS_FAIL,
+        eSTATUS_MASSIF,
+        eSTATUS_EXE
     };
 
     CommandLineStatus parse(int argc, char** argv);
@@ -26,6 +28,11 @@ public:
     {
         return mMassifFile;
     } 
+
+    inline std::string getExecFile() const 
+    {
+        return mExecFileName;
+    }
 private:
     CommandLineOpts(const CommandLineOpts& other);
     CommandLineOpts& operator=(const CommandLineOpts& other);
@@ -39,8 +46,10 @@ private:
      * @brief Method for validation of massif file if its given as argument
      */
     std::optional<std::string> validateMassifFile();
+
+
 private:
     po::options_description mOptions;
     std::string mMassifFile;
-    std::string mSourceFileName;
+    std::string mExecFileName;
 };

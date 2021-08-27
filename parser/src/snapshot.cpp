@@ -30,7 +30,7 @@ void printPath(std::shared_ptr<Tree> tree)
     for(auto child: tree.get()->children)
     {
         printPath(child);   
-        std::cout << "->";
+        std::cout << " => ";
         std::cout << tree.get()->function  << "(" << tree.get()->file << ":" << tree.get()->line << ")";
     }
       

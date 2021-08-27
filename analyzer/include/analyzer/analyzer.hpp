@@ -10,7 +10,6 @@ public:
     FixifAnalyzer(const std::vector<std::shared_ptr<Snapshot>>& snapshots, const std::shared_ptr<Snapshot>& peakSnapshot)
         : mSnapshots(snapshots), mPeakSnapshot(peakSnapshot)
     {}
-
     void run();
 
 private:
@@ -22,15 +21,14 @@ private:
     std::vector<std::shared_ptr<Snapshot>> mSnapshots;
 };
 
-
 class Analyzer 
 {
 public:
     Analyzer(const std::vector<std::shared_ptr<Node>>& nodes)
-        : _nodes(nodes)
+        : mNodes(nodes)
     {}
-
     void run();
-    
-    std::vector<std::shared_ptr<Node>> _nodes;
+
+private:
+    std::vector<std::shared_ptr<Node>> mNodes;
 };

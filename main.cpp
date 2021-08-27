@@ -1,40 +1,69 @@
 #include <iostream>
-
-#include <parser/parser.hpp>
-
 #include <utils/options_desc.hpp>
+#include <utils/executor_manager.hpp>
+#include <parser/parser.hpp>
 #include <analyzer/analyzer.hpp>
 
 int main(int argc, char** argv)
 {
     CommandLineOpts cmdLineOpts;
-    if (cmdLineOpts.parse(argc, argv) != CommandLineOpts::CommandLineStatus::eSTATUS_OK) {
+    CommandLineOpts::CommandLineStatus cmdLineStatus;
+    if ((cmdLineStatus = cmdLineOpts.parse(argc, argv)) == CommandLineOpts::CommandLineStatus::eSTATUS_FAIL) {
         return 1;
     }
 
-    
-    MassifParser massParser(cmdLineOpts.getMassifFile());
-    if (MassifParser::ParserStatus::ePARSER_OK != massParser.parse()) {
-        std::cerr << "Failed parsing " << cmdLineOpts.getMassifFile() << std::endl;
-        return 1; 
-    }
-    
-    /*
-    XtmemoryParser xtParser(cmdLineOpts.getMassifFile());
-    if (XtmemoryParser::ParserStatus::ePARSER_OK != xtParser.parse()) {
-        std::cerr << "Failed parsing " << cmdLineOpts.getMassifFile() << std::endl;
-        return 1; 
-    }
-    */
 
-    /*
-    Analyzer analyzer(std::move(xtParser.getTree()._nodes));
-    analyzer.run();
-    */
+    ExecutorManager* manager;
+    std::string s("");
+    switch (cmdLineStatus) {
+        case CommandLineOpts::CommandLineStatus::eSTATUS_MASSIF:
+        {
+            MassifParser massParser(cmdLineOpts.getMassifFile());
+            //massParser.parse();
+            //std::cout << massParser;
+            
+            if (MassifParser::ParserStatus::ePARSER_OK != massParser.parse()) {
+                std::cerr << "Failed parsing " << cmdLineOpts.getMassifFile() << std::endl;
+                return 1;
+            }
     
-    FixifAnalyzer analyzer(std::move(massParser.getSnapshots()), std::move(massParser.getPeakSnapshot()));
-    analyzer.run();
-    
-    
+            FixifAnalyzer analyzer(std::move(massParser.getSnapshots()), std::move(massParser.getPeakSnapshot()));
+            analyzer.run();
+
+            break;
+        }
+        case CommandLineOpts::CommandLineStatus::eSTATUS_EXE:
+        {  
+            manager = new ExecutorManager(cmdLineOpts.getExecFile());
+            manager->execOperation();
+            
+            auto pid = manager->getPid();
+        
+            MassifParser massParser("massif.out." + std::to_string(pid));
+            if (MassifParser::ParserStatus::ePARSER_OK != massParser.parse()) {
+                std::cerr << "Failed parsing " << "massif.out." + std::to_string(pid) << std::endl;
+                return 1;
+            } else {
+                FixifAnalyzer massifAnalyzer(std::move(massParser.getSnapshots()), std::move(massParser.getPeakSnapshot()));
+                massifAnalyzer.run();
+            }
+
+            XtmemoryParser xtParser("xtmemory.kcg." + std::to_string(pid));
+            if (XtmemoryParser::ParserStatus::ePARSER_OK != xtParser.parse()) {
+                std::cerr << "Failed parsing " << "xtmemory.kcg." + std::to_string(pid) << std::endl;
+                return 1; 
+            } else {
+                Analyzer xtmemoryAnalyzer(std::move(xtParser.getTree().xNodes));
+                xtmemoryAnalyzer.run();
+            }    
+
+            delete manager;
+            break;
+        }
+        default:
+            break;
+    }
+
+
     return 0;
 }
