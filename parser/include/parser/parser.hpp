@@ -5,6 +5,7 @@
 #include <fstream>
 #include <sstream>
 #include <parser/snapshot.hpp>
+#include <parser/node.hpp>
 
 class MassifParser
 {
@@ -27,6 +28,16 @@ public:
             return result;
         }
     }
+
+    inline const std::shared_ptr<Snapshot>& getPeakSnapshot() {
+        if (status == ParserStatus::ePARSER_OK) {
+            return mPeakSnapshot;
+        } else {
+            static decltype(mPeakSnapshot) result{};
+            return result;
+        }
+    }
+
     void run();
 private:
     std::string mDesc;
@@ -37,5 +48,37 @@ private:
     
     std::ifstream mFile;
     std::stringstream mContent;
+    ParserStatus status = ParserStatus::ePARSER_OK;
+};
+
+class XtmemoryParser
+{
+public:
+    XtmemoryParser() = default;
+    XtmemoryParser(const std::string& path);
+    ~XtmemoryParser();
+
+    enum class ParserStatus {
+        ePARSER_OK,
+        ePARSER_FAIL
+    };
+    
+    ParserStatus parse();
+    friend std::ostream& operator<< (std::ostream &out, const XtmemoryParser &mp);
+    inline const XTreeMemory& getTree() {
+        if (status == ParserStatus::ePARSER_OK) {
+            return _tree;
+        } else {
+            static decltype(_tree) result{};
+            return result;
+        }
+    }
+
+    void run();
+    
+    XTreeMemory _tree;
+
+    std::ifstream _file;
+    std::stringstream _content;
     ParserStatus status = ParserStatus::ePARSER_OK;
 };

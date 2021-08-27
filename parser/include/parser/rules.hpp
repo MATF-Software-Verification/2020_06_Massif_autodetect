@@ -3,12 +3,12 @@
 
 namespace x3 = boost::spirit::x3;
 namespace ascii = boost::spirit::x3::ascii;
+using x3::lit;
+using x3::int_;
+using x3::ulong_;
 
 namespace massifRules
 {
-    using x3::lit;
-    using x3::int_;
-    using x3::ulong_;
     auto const rDesc = lit("desc:") >> *(x3::print) >> "\n";
     auto const rCmd = lit("cmd:") >> *(x3::print) >> "\n";
     auto const rTimeUnit = lit("time_unit:") >> *(x3::print) >> "\n";
@@ -41,3 +41,37 @@ namespace massifRules
 
     
 } // namespace massifRules
+
+
+namespace xtmemoryRules
+{
+    auto const rDesc = lit("# callgrind format") >> "\n"
+                    >> lit("version: ") >> int_ >> "\n" 
+                    >> lit("creator: ") >> *(x3::print) >> "\n"
+                    >> lit("pid: ") >> int_ >> "\n" 
+                    >> lit("cmd: ") >> *(x3::print) >> "\n" >> "\n";
+
+    auto const rEvents = lit("positions: ") >> *(x3::print) >> "\n"
+                      >> lit("event: curB : currently allocated Bytes\n") 
+                      >> lit("event: curBk : currently allocated Blocks\n")
+                      >> lit("event: totB : total allocated Bytes\n") 
+                      >> lit("event: totBk : total allocated Blocks\n")
+                      >> lit("event: totFdB : total Freed Bytes\n")
+                      >> lit("event: totFdBk : total Freed Blocks\n")
+                      >> lit("events: curB  curBk  totB  totBk  totFdB  totFdBk \n");
+
+    auto const rHeader= rDesc >> rEvents;
+
+    auto const rFile = lit("fl=") >> "(" >> int_ >> ")" >> *(x3::print) >> "\n";
+    auto const rFunction = lit("fn=") >> "(" >> int_ >> ")" >> *(x3::print) >> "\n";
+    auto const rLineNumber = int_ >> "\n";
+    
+    auto const rCfi = lit("cfi=") >> "(" >> int_ >> ")" >> *(x3::print) >> "\n";
+    auto const rCfn = lit("cfn=") >> "(" >> int_ >> ")" >> *(x3::print) >> "\n";
+    auto const rCalls = lit("calls=") >> int_ >> " " >> int_ >> "\n";
+
+    auto const rAllocatedBytesInfo = int_ >> " " >> int_ >> " " >> int_ >> " " >> int_ >> " " >> int_ >> " " >> int_ >> " " >> int_ >> "\n";
+    auto const rTotals = "totals: " >> int_ >> " " >>  int_ >> " " >> int_ >> " " >>  int_ >> " "  >> int_ >> " " >>  int_ >>  "\n";
+    auto const rDirectAlloc = rFile >> rFunction >> rAllocatedBytesInfo;  
+    auto const rSubAlloc = rFile >> rFunction >> rLineNumber >> rCfi >> rCfn >> rCalls >> rAllocatedBytesInfo;
+}

@@ -6,57 +6,80 @@
 void FixifAnalyzer::processPeak()
 {
     std::cout << "#PEAK#" << std::endl;
+
+    /* ako peak ne postoji znaci da memorija nigde nije oslobadjana,
+       svakako bi trebealo korisnika obavestiti o tome */
+    
     if(mPeakSnapshot == nullptr){
-        std::cout << "Peak ne postoji." << std::endl;
+        std::cout << "Peak doesn't exist." << std::endl;
         return;
     }
     
-    std::cout << mPeakSnapshot->memHeapB << " bajtova je alocirano" ;
+    std::cout << mPeakSnapshot->memHeapB << " bytes are allocated" ;
     std::cout << *mPeakSnapshot;
 }
 
 
 void FixifAnalyzer::processLastSnapshot()
 {
-    auto snapshot = mSnapshots.back();
     std::cout << "#STILL ALLOCATED#" << std::endl;
+
+    auto snapshot = mSnapshots.back();
     auto stillAllocated = snapshot->memHeapB;
+    
     if(stillAllocated == 0 )
         return;
     
-    std::cout << stillAllocated << " bajtova nije oslobodjeno";
+    std::cout << stillAllocated << " bytes not freed";
     std::cout << *snapshot;
 }
 
 
-std::vector<std::pair<std::string, int>> getPathOfBytes(std::shared_ptr<Tree> tree) {
-    if (tree->children.size() == 0) {
+/* pomocna funkcija (izdvojena zbog primene rekurzije) */
+std::vector<std::pair<std::string, int>> getPath(std::shared_ptr<Tree> tree) 
+{
+
+    /* kreiraju se putanje koje sadrze funkcije i pozicije u fajlu koje alociraju odredjeni blok memorije */
+    /* putanja u obliku funkcija1 (datoteka.c: broj linije) -> ... -> funkcijaN (datoteka.c:broj linije) */
+
+    /* ukoliko podstablo ne sadrzi decu, direktno se kreira par (putanja, broj bajtova) */
+    if (tree->children.size() == 0) 
+    {
         std::string path = tree->function + "(" + tree->file + ":" + std::to_string(tree->line) + ")";
         return {std::make_pair(path, tree->bytes)};
     }
 
-    std::vector<std::pair<std::string, int>> returnValue;
-    for (auto& child: tree->children) {
-        std::vector<std::pair<std::string, int>> pairs = getPathOfBytes(child);
-        for (auto pair: pairs) {
+    std::vector<std::pair<std::string, int>> pathToBytes;
+
+    for (auto& child: tree->children) 
+    {
+        std::vector<std::pair<std::string, int>> pairs = getPath(child);
+
+        for (auto pair: pairs) 
+        {
             std::string path = pair.first + " ->" + tree->function + "(" + tree->file + ":" + std::to_string(tree->line) + ")";
-            returnValue.push_back(std::make_pair(path, pair.second));
+            pathToBytes.push_back(std::make_pair(path, pair.second));
         }
     }
 
-    return returnValue;
+    return pathToBytes;
 }
-
 
 
 std::map<std::string, int> getMapByTree(std::shared_ptr<Tree> tree) 
 {
 
     std::map<std::string, int> mapByTree;
-    for (auto& child: tree->children) {
-        std::vector<std::pair<std::string, int>> pathsOfBytes = getPathOfBytes(child);
-        for(auto x: pathsOfBytes) {
-            mapByTree[x.first] = x.second;
+
+    /* za svako dete korenog cvora odrediti putanju */
+    for (auto& child: tree->children) 
+    {
+        std::vector<std::pair<std::string, int>> pathsOfBytes = getPath(child);
+        
+        /* svaku putanju smestiti u mapu u kojoj je kljuc  putanja, a vrednost kolicina alociranih bajtova na toj putanji  */
+        for(auto path: pathsOfBytes) 
+        {
+            mapByTree[path.first] = path.second;
         }
     }
 
@@ -67,37 +90,60 @@ std::map<std::string, int> getMapByTree(std::shared_ptr<Tree> tree)
 void FixifAnalyzer::processSnapshots() 
 {
     auto counter = 0, sum = 0;
+
     for(int i = 0; i < mSnapshots.size() - 1; i++)
     {
+        /* koliko je u svakom koraku alocirano bajtova */
         auto diff = mSnapshots[i+1]->memHeapB - mSnapshots[i]->memHeapB;
-        if (diff > 0) {
+    
+        /* ukoliko je vrseno alociranje nove memorije, a ne oslobadjanje */
+        if (diff > 0) 
+        {
             sum += diff;
-            counter++;
+            counter += 1;
         }
     }
+
     auto averageDifference = sum/counter;
 
     std::cout << "#OUTLIERS#" << std::endl;
-    std::cout << averageDifference << std::endl;
+    std::cout << "Average value of allocated bytes: " << averageDifference << " bytes " << std::endl;
     
     std::vector<std::shared_ptr<Snapshot>> outliers;
-    for(int i = 0; i< mSnapshots.size() - 1; i++)
+
+    for(int i = 0; i < mSnapshots.size() - 1; i++)
     {
         auto diff = mSnapshots[i+1]->memHeapB - mSnapshots[i]->memHeapB;
-        if(diff > averageDifference * 1.5){
+        
+        /* ako je razlika znacajna tako da predstavlja autlajer */
+        if(diff > averageDifference * 1.5)
+        {
             outliers.push_back(mSnapshots[i+1]);
 
-            std::cout << diff << " bajtova je alocirano:" << std::endl; 
-            if (mSnapshots[i+1]->tree != nullptr && mSnapshots[i]->tree != nullptr) {
-                std::map<std::string, int> beforeInfo = getMapByTree(mSnapshots[i]->tree);
+            std::cout << diff << " bytes allocated:" <<  std::endl; 
+
+            /* ako su dva uzastopna snimka detaljna */
+            if (mSnapshots[i+1]->tree != nullptr && mSnapshots[i]->tree != nullptr) 
+            {
+                std::map<std::string, int> previousInfo = getMapByTree(mSnapshots[i]->tree);
                 std::map<std::string, int> currentInfo = getMapByTree(mSnapshots[i+1]->tree);
-                for (auto xCurrent: currentInfo) {
-                    auto xBefore = beforeInfo.find(xCurrent.first);
-                    if (xBefore == beforeInfo.end()) {
+
+                /* za svaku putanju u drugom detaljnom stablu */
+                for (auto xCurrent: currentInfo) 
+                {
+                    /* pronaci istu putanju u prethodnom, prvom detaljnom stablu */
+                    auto xPrevious = previousInfo.find(xCurrent.first);
+                    
+                    /* ukoliko takvo nesto ne postoji, pronasli smo mesto nove alokacije */
+                    if (xPrevious == previousInfo.end()) 
+                    {
                         std::cout << "  " << xCurrent.first << std::endl;
                         break;
                     }
-                    if (xCurrent.second - (*xBefore).second == diff) {
+
+                    /* u suprotnom, ako postoji i razlika u bajtovim je jednaka upravo trazenoj, onda smo pronasli mesto nove alokacije  */
+                    if (xCurrent.second - (*xPrevious).second == diff) 
+                    {
                         std::cout << "  " << xCurrent.first << std::endl;
                         break;
                     }
@@ -107,35 +153,28 @@ void FixifAnalyzer::processSnapshots()
     }
 }
 
-void FixifAnalyzer::createMap()
-{
-    std::map<std::string, int> map;
-    
-    auto firstDetailedSnapshot = *std::find_if(mSnapshots.cbegin(), mSnapshots.cend(), [](auto& s) { return s->tree; });
-    auto lastDetailedSnapshot = *std::find_if(mSnapshots.crbegin(), mSnapshots.crend(), [](auto& s) { return s->tree; });
-
-    std::map<std::string, int> dealokations;
-    if (!firstDetailedSnapshot) return;
-    for (int i = firstDetailedSnapshot->title; i <= lastDetailedSnapshot->title; i++) {
-        if (!mSnapshots[i]->tree)
-            continue;
-        std::map<std::string, int> newMap = getMapByTree(mSnapshots[i]->tree);
-        for (auto& x: map) {
-            if (newMap.find(x.first) == newMap.end()) {
-                dealokations[x.first] = x.second;
-            }
-        }
-    }
-}
-
 void FixifAnalyzer::run()
 {
     processPeak();
-    std::cout << "=========================================" << std::endl;
+    std::cout << "==================================================" << std::endl;
+    
     processLastSnapshot();
-    std::cout << "=========================================" << std::endl;
+    std::cout << "==================================================" << std::endl;
+    
     processSnapshots();
-    std::cout << "=========================================" << std::endl;
-    createMap();
+    std::cout << "==================================================" << std::endl;
+    
+
     return;
+}
+
+
+void Analyzer::run()
+{
+    std::cout << "Analyze xtmemory.kcg.pid file: " << std::endl;  
+
+    for(auto& node : _nodes)
+    {
+        std::cout << *node.get() << std::endl;
+    }
 }

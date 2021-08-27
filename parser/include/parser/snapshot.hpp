@@ -2,7 +2,7 @@
 #include <string>
 #include <vector>
 #include <iostream>
-#include<memory>
+#include <memory>
 
 class Tree
 {
@@ -54,7 +54,6 @@ public:
     int treeHeaderNumber;
     int treeHeaderBytes;
     std::string treeHeaderMessage;
-    bool isPeak = false;
     std::shared_ptr<Tree> tree; 
 };
 
