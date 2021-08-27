@@ -39,7 +39,7 @@ MassifParser::ParserStatus MassifParser::parse()
 {
     using boost::spirit::x3::_attr;
     std::shared_ptr<Snapshot> currentSnapshot;
-
+    using namespace boost;
     auto snapshotInfoAction = [&](auto& ctx){
         auto attr = _attr(ctx);
         auto title = fusion::at_c<0>(attr);
