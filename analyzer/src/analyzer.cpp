@@ -3,7 +3,7 @@
 #include <map>
 
 
-void FixifAnalyzer::processPeak()
+void MassifAnalyzer::processPeak()
 {
     std::cout << "#PEAK#" << std::endl;
 
@@ -20,7 +20,7 @@ void FixifAnalyzer::processPeak()
 }
 
 
-void FixifAnalyzer::processLastSnapshot()
+void MassifAnalyzer::processLastSnapshot()
 {
     std::cout << "#STILL ALLOCATED#" << std::endl;
 
@@ -86,7 +86,7 @@ std::map<std::string, int> getMapByTree(std::shared_ptr<Tree> tree)
 }
 
 
-void FixifAnalyzer::processSnapshots() 
+void MassifAnalyzer::processSnapshots() 
 {
     auto counter = 0, sum = 0;
 
@@ -152,7 +152,7 @@ void FixifAnalyzer::processSnapshots()
     }
 }
 
-void FixifAnalyzer::run()
+void MassifAnalyzer::run()
 {
     processPeak();
     std::cout << "-----------------------------------------------------------------------------" << std::endl;
@@ -165,7 +165,7 @@ void FixifAnalyzer::run()
 }
 
 
-void Analyzer::run()
+void XtMemoryAnalyzer::run()
 {
     //std::cout << "Analyze xtmemory.kcg.pid file: " << std::endl;  
     for(auto const& node : mNodes)

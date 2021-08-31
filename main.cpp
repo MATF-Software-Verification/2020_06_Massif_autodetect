@@ -27,16 +27,15 @@ int main(int argc, char** argv)
                 return 1;
             }
     
-            FixifAnalyzer analyzer(std::move(massParser.getSnapshots()), std::move(massParser.getPeakSnapshot()));
-            analyzer.run();
-
+            FixifAnalyzer* analyzer = new MassifAnalyzer(std::move(massParser.getSnapshots()), std::move(massParser.getPeakSnapshot()));
+            analyzer->run();
+            delete analyzer;
             break;
         }
         case CommandLineOpts::CommandLineStatus::eSTATUS_EXE:
         {  
             manager = new ExecutorManager(cmdLineOpts.getExecFile());
             manager->execOperation();
-            
             auto pid = manager->getPid();
         
             MassifParser massParser("massif.out." + std::to_string(pid));
@@ -44,8 +43,9 @@ int main(int argc, char** argv)
                 std::cerr << "Failed parsing " << "massif.out." + std::to_string(pid) << std::endl;
                 return 1;
             } else {
-                FixifAnalyzer massifAnalyzer(std::move(massParser.getSnapshots()), std::move(massParser.getPeakSnapshot()));
-                massifAnalyzer.run();
+                FixifAnalyzer*  massifAnalyzer = new MassifAnalyzer( std::move(massParser.getSnapshots()), std::move(massParser.getPeakSnapshot()));
+                massifAnalyzer->run();
+                delete massifAnalyzer;
             }
 
             XtmemoryParser xtParser("xtmemory.kcg." + std::to_string(pid));
@@ -53,8 +53,9 @@ int main(int argc, char** argv)
                 std::cerr << "Failed parsing " << "xtmemory.kcg." + std::to_string(pid) << std::endl;
                 return 1; 
             } else {
-                Analyzer xtmemoryAnalyzer(std::move(xtParser.getTree().xNodes));
-                xtmemoryAnalyzer.run();
+                FixifAnalyzer* xtmemoryAnalyzer = new XtMemoryAnalyzer(std::move(xtParser.getTree().xNodes));
+                xtmemoryAnalyzer->run();
+                delete xtmemoryAnalyzer;
             }    
 
             delete manager;

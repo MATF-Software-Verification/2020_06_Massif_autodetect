@@ -4,13 +4,23 @@
 #include <parser/snapshot.hpp>
 #include <parser/node.hpp>
 
-class FixifAnalyzer 
+
+class FixifAnalyzer
 {
 public:
-    FixifAnalyzer(const std::vector<std::shared_ptr<Snapshot>>& snapshots, const std::shared_ptr<Snapshot>& peakSnapshot)
+    FixifAnalyzer() {}
+    virtual ~FixifAnalyzer() {}
+    virtual void run() = 0;
+};
+
+class MassifAnalyzer : public FixifAnalyzer 
+{
+public:
+    MassifAnalyzer(const std::vector<std::shared_ptr<Snapshot>>& snapshots, const std::shared_ptr<Snapshot>& peakSnapshot)
         : mSnapshots(snapshots), mPeakSnapshot(peakSnapshot)
     {}
-    void run();
+    
+    void run() override;
 
 private:
     void processPeak();
@@ -21,13 +31,15 @@ private:
     std::vector<std::shared_ptr<Snapshot>> mSnapshots;
 };
 
-class Analyzer 
+
+
+class XtMemoryAnalyzer : public FixifAnalyzer
 {
 public:
-    Analyzer(const std::vector<std::shared_ptr<Node>>& nodes)
+    XtMemoryAnalyzer(const std::vector<std::shared_ptr<Node>>& nodes)
         : mNodes(nodes)
     {}
-    void run();
+    void run() override;
 
 private:
     std::vector<std::shared_ptr<Node>> mNodes;
