@@ -1,4 +1,5 @@
 #include <parser/node.hpp>
+#include <boost/algorithm/string.hpp>
 
 
 void XTreeMemory::addNode(std::shared_ptr<Node> node)
@@ -24,11 +25,16 @@ std::ostream& operator<< (std::ostream &out, const Node &t)
         }
     }
 
-    out << t.xFile << ":" << t.xFunction << ":" << t.xLine << std::endl;
-    if (t.xChildNode != nullptr){
-        out << "\t";
-        out << *(t.xChildNode.get());
-    }
+    std::vector<std::string> splits;
+    boost::algorithm::split(splits, t.xFile, boost::is_any_of("/"));
 
+    out << t.xFunction << "(" << *(splits.rbegin()) << ":" << t.xLine << ")";
+    if (t.xChildNode != nullptr){
+        out << " => ";
+        out << *(t.xChildNode.get());
+    } else {
+        out << std::endl;
+    }
+    
     return out;
 }

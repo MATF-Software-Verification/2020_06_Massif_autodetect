@@ -164,6 +164,7 @@ XtmemoryParser::ParserStatus XtmemoryParser::parse()
         auto attr = _attr(ctx);
         auto fileNumber = fusion::at_c<0>(attr);
         auto fileName = fusion::at_c<1>(attr);
+        boost::algorithm::trim(fileName);
         if (fileName == ""){
             fileName = fileNameMap[fileNumber];
         } else {
@@ -174,7 +175,7 @@ XtmemoryParser::ParserStatus XtmemoryParser::parse()
         auto functionName = fusion::at_c<3>(attr);  
         boost::algorithm::trim(functionName);
         if (functionName == ""){
-            functionName = functionNameMap[fileNumber];
+            functionName = functionNameMap[functionNumber];
         } else {
             functionNameMap[functionNumber] = functionName;
         }   
