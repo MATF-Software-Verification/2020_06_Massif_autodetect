@@ -120,8 +120,6 @@ MassifParser::ParserStatus MassifParser::parse()
     2. broj u naziv fajla
 */
 
-auto functionNameMap = std::map<int, std::string>();
-auto fileNameMap = std::map<int, std::string>();
 
 XtmemoryParser::XtmemoryParser(const std::string& path)
     :xFile(path)
@@ -165,9 +163,9 @@ XtmemoryParser::ParserStatus XtmemoryParser::parse()
         auto fileNumber = fusion::at_c<0>(attr);
         auto fileName = boost::algorithm::trim_copy(fusion::at_c<1>(attr));
         if (fileName == ""){
-            fileName = fileNameMap[fileNumber];
+            fileName = XtmemoryParser::fileNameMap[fileNumber];
         } else {
-            fileNameMap[fileNumber] = fileName;
+            XtmemoryParser::fileNameMap[fileNumber] = fileName;
         }
 
         auto functionNumber =  fusion::at_c<2>(attr);
@@ -186,15 +184,15 @@ XtmemoryParser::ParserStatus XtmemoryParser::parse()
         auto cFnName =  boost::algorithm::trim_copy(fusion::at_c<8>(attr));   
 
         if (cFiName == ""){
-            cFiName = fileNameMap[cFi];
+            cFiName = XtmemoryParser::fileNameMap[cFi];
         } else {
-            fileNameMap[cFi] = cFiName;
+            XtmemoryParser::fileNameMap[cFi] = cFiName;
         }
 
         if (cFnName == ""){
-            cFnName = functionNameMap[cFn];
+            cFnName = XtmemoryParser::functionNameMap[cFn];
         } else {
-            functionNameMap[cFn] = cFnName;
+            XtmemoryParser::functionNameMap[cFn] = cFnName;
         }
 
         auto calls1 =  fusion::at_c<9>(attr);
@@ -222,17 +220,17 @@ XtmemoryParser::ParserStatus XtmemoryParser::parse()
         auto fileName = boost::algorithm::trim_copy(fusion::at_c<1>(attr));
 
         if (fileName == ""){
-            fileName = fileNameMap[fileNumber];
+            fileName = XtmemoryParser::fileNameMap[fileNumber];
         } else {
-            fileNameMap[fileNumber] = fileName;
+            XtmemoryParser::fileNameMap[fileNumber] = fileName;
         }
 
         auto functionNumber =  fusion::at_c<2>(attr);
         auto functionName = boost::algorithm::trim_copy(fusion::at_c<3>(attr));  
         if (functionName == ""){
-            functionName = functionNameMap[functionNumber];
+            functionName = XtmemoryParser::functionNameMap[functionNumber];
         } else {
-            functionNameMap[functionNumber] = functionName;
+            XtmemoryParser::functionNameMap[functionNumber] = functionName;
         }
 
         int lineNumber = fusion::at_c<4>(attr);

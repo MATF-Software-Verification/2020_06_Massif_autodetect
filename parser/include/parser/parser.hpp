@@ -87,4 +87,8 @@ private:
     std::ifstream xFile;
     std::stringstream xContent;
     ParserStatus status = ParserStatus::ePARSER_OK;
+
+    std::map<int, std::string> fileNameMap;
+    std::map<int, std::string> functionNameMap;
+    
 };

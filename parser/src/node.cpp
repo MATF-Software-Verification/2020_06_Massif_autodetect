@@ -23,6 +23,7 @@ void reset () {
 
 std::ostream& operator<< (std::ostream &out, const Node &t)
 {
+    out << "###################################################" << std::endl;
     if (t.xAllocation.size() > 0){
         if (t.xAllocation[3] >= 3) {
             red();

@@ -178,3 +178,10 @@ void XtMemoryAnalyzer::run()
               << " totB:" << t->xTotals[2] << " totBk:" << t->xTotals[3] 
               << " totFdB:" << t->xTotals[4] << " totFdBk:" << t->xTotals[5] << std::endl;*/
 }
+
+bool XtMemoryAnalyzer::appendToSource()
+{
+    
+
+    return true;
+}

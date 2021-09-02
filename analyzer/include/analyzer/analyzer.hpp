@@ -4,7 +4,6 @@
 #include <parser/snapshot.hpp>
 #include <parser/node.hpp>
 
-
 class FixifAnalyzer
 {
 public:
@@ -13,25 +12,24 @@ public:
     virtual void run() = 0;
 };
 
-class MassifAnalyzer : public FixifAnalyzer 
+class MassifAnalyzer : public FixifAnalyzer
 {
 public:
-    MassifAnalyzer(const std::vector<std::shared_ptr<Snapshot>>& snapshots, const std::shared_ptr<Snapshot>& peakSnapshot)
+    MassifAnalyzer(const std::vector<std::shared_ptr<Snapshot>> &snapshots, const std::shared_ptr<Snapshot> &peakSnapshot)
         : mSnapshots(snapshots), mPeakSnapshot(peakSnapshot)
-    {}
-    
+    {
+    }
+
     void run() override;
 
 private:
     void processPeak();
     void processLastSnapshot();
     void processSnapshots();
-    
+
     std::shared_ptr<Snapshot> mPeakSnapshot;
     std::vector<std::shared_ptr<Snapshot>> mSnapshots;
 };
-
-
 
 class XtMemoryAnalyzer : public FixifAnalyzer
 {
@@ -43,4 +41,5 @@ public:
 
 private:
     std::shared_ptr<XTreeMemory> xTree;
+    bool appendToSource();
 };
