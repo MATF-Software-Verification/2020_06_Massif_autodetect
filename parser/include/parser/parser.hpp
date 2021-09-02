@@ -76,10 +76,13 @@ public:
     }
 
     void run();
-    
+private:    
     XTreeMemory xTree;
-
     std::ifstream xFile;
     std::stringstream xContent;
     ParserStatus status = ParserStatus::ePARSER_OK;
+
+    static std::map<int, std::string> fileNameMap;
+    static std::map<int, std::string> functionNameMap;
+    
 };

@@ -173,3 +173,10 @@ void XtMemoryAnalyzer::run()
         std::cout << *node.get() << std::endl;
     }
 }
+
+bool XtMemoryAnalyzer::appendToSource()
+{
+    
+
+    return true;
+}

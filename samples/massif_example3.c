@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
-
+#include "pomocni.h"
 
 int main(int argc, char const *argv[])
 {
@@ -8,18 +8,9 @@ int main(int argc, char const *argv[])
     for (int i = 0; i < 10; i++)
     {
         aptr[i] = malloc(1024);
+        foo();
         free(aptr[i]);
     }
     return 0;
 }
 
-
-
-void foo()
-{
-    int* arr = (int*)malloc(2 * sizeof(int));
-
-    printf("arry %d", arr[0]);
-    free(arr);
-
-}
