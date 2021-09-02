@@ -16,6 +16,7 @@ public:
     std::ostream& printData(std::ostream &out, int level) const;
     friend std::ostream& operator<< (std::ostream &out, const Node &t);
     
+private:
     std::string xFile;
     std::string xFunction;
     int xLine;
@@ -29,6 +30,11 @@ public:
     XTreeMemory() = default;
     void addNode(std::shared_ptr<Node> xNode);
 
+    inline const std::vector<std::shared_ptr<Node>>& getNodes() {
+       return xNodes;
+    } 
+
+private:
     std::vector<std::shared_ptr<Node>> xNodes; 
     std::vector<int> xTotals;
 };

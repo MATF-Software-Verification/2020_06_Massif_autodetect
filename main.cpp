@@ -37,6 +37,7 @@ int main(int argc, char** argv)
             manager = new ExecutorManager(cmdLineOpts.getExecFile());
             manager->execOperation();
             auto pid = manager->getPid();
+            delete manager;
         
             MassifParser massParser("massif.out." + std::to_string(pid));
             if (MassifParser::ParserStatus::ePARSER_OK != massParser.parse()) {
@@ -53,12 +54,11 @@ int main(int argc, char** argv)
                 std::cerr << "Failed parsing " << "xtmemory.kcg." + std::to_string(pid) << std::endl;
                 return 1; 
             } else {
-                FixifAnalyzer* xtmemoryAnalyzer = new XtMemoryAnalyzer(std::move(xtParser.getTree().xNodes));
+                FixifAnalyzer* xtmemoryAnalyzer = new XtMemoryAnalyzer(std::move(xtParser.getTree()));
                 xtmemoryAnalyzer->run();
                 delete xtmemoryAnalyzer;
             }    
 
-            delete manager;
             break;
         }
         default:

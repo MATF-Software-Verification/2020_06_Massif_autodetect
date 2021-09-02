@@ -130,6 +130,8 @@ XtmemoryParser::XtmemoryParser(const std::string& path)
         status = ParserStatus::ePARSER_FAIL;
         std::cerr << "Fail to open " << path << "\n";
     }
+
+    xTree = std::make_shared<XTreeMemory>();
     xContent << xFile.rdbuf();
 }
 
@@ -141,10 +143,10 @@ XtmemoryParser::~XtmemoryParser()
 }
 
 
-std::ostream& operator<< (std::ostream &out, const XtmemoryParser &xtmp)
+std::ostream& operator<< (std::ostream &out, const std::shared_ptr<XtmemoryParser> &xtmp)
 {
    
-    for(auto node: xtmp.xTree.xNodes){
+    for(auto node: xtmp->getTree()->getNodes()){
         out << *node.get();
     }
 
@@ -154,17 +156,14 @@ std::ostream& operator<< (std::ostream &out, const XtmemoryParser &xtmp)
 XtmemoryParser::ParserStatus XtmemoryParser::parse()
 {
     using boost::spirit::x3::_attr;
-    
-    std::shared_ptr<Node> currentNode;
+
     auto const content = XtmemoryParser::xContent.str();
 
     auto subAlloc = [&](auto& ctx)
-    { 
-        
+    {     
         auto attr = _attr(ctx);
         auto fileNumber = fusion::at_c<0>(attr);
-        auto fileName = fusion::at_c<1>(attr);
-        boost::algorithm::trim(fileName);
+        auto fileName = boost::algorithm::trim_copy(fusion::at_c<1>(attr));
         if (fileName == ""){
             fileName = fileNameMap[fileNumber];
         } else {
@@ -172,8 +171,7 @@ XtmemoryParser::ParserStatus XtmemoryParser::parse()
         }
 
         auto functionNumber =  fusion::at_c<2>(attr);
-        auto functionName = fusion::at_c<3>(attr);  
-        boost::algorithm::trim(functionName);
+        auto functionName = boost::algorithm::trim_copy(fusion::at_c<3>(attr));
         if (functionName == ""){
             functionName = functionNameMap[functionNumber];
         } else {
@@ -183,9 +181,9 @@ XtmemoryParser::ParserStatus XtmemoryParser::parse()
         auto lineNumber =  fusion::at_c<4>(attr);
 
         auto cFi = fusion::at_c<5>(attr);
-        auto cFiName = fusion::at_c<6>(attr);
+        auto cFiName = boost::algorithm::trim_copy(fusion::at_c<6>(attr));
         auto cFn = fusion::at_c<7>(attr);
-        auto cFnName = fusion::at_c<8>(attr);
+        auto cFnName =  boost::algorithm::trim_copy(fusion::at_c<8>(attr));   
 
         if (cFiName == ""){
             cFiName = fileNameMap[cFi];
@@ -214,14 +212,15 @@ XtmemoryParser::ParserStatus XtmemoryParser::parse()
         auto node = std::make_shared<Node>(fileName, functionName, lineNumber, allocation);
         node->setChild(child);
 
-        this->xTree.addNode(node);
+        this->getTree()->addNode(node);
     };   
 
     auto directAlloc = [&](auto& ctx)
     { 
         auto attr = _attr(ctx);
         auto fileNumber = fusion::at_c<0>(attr);
-        auto fileName = fusion::at_c<1>(attr);
+        auto fileName = boost::algorithm::trim_copy(fusion::at_c<1>(attr));
+
         if (fileName == ""){
             fileName = fileNameMap[fileNumber];
         } else {
@@ -229,7 +228,7 @@ XtmemoryParser::ParserStatus XtmemoryParser::parse()
         }
 
         auto functionNumber =  fusion::at_c<2>(attr);
-        auto functionName = fusion::at_c<3>(attr);  
+        auto functionName = boost::algorithm::trim_copy(fusion::at_c<3>(attr));  
         if (functionName == ""){
             functionName = functionNameMap[functionNumber];
         } else {
@@ -247,19 +246,19 @@ XtmemoryParser::ParserStatus XtmemoryParser::parse()
         allocation.push_back(fusion::at_c<10>(attr));        
         
         auto node = std::make_shared<Node>(fileName, functionName, lineNumber, allocation);
-        this->xTree.addNode(node);
+        this->getTree()->addNode(node);
     };
     
     auto totals = [&](auto& ctx)
     {
         auto attr = _attr(ctx);
 
-        this->xTree.xTotals.push_back(fusion::at_c<0>(attr));
-        this->xTree.xTotals.push_back(fusion::at_c<1>(attr));
-        this->xTree.xTotals.push_back(fusion::at_c<2>(attr));
-        this->xTree.xTotals.push_back(fusion::at_c<3>(attr));
-        this->xTree.xTotals.push_back(fusion::at_c<4>(attr));
-        this->xTree.xTotals.push_back(fusion::at_c<5>(attr));
+        this->getTree()->xTotals.push_back(fusion::at_c<0>(attr));
+        this->getTree()->xTotals.push_back(fusion::at_c<1>(attr));
+        this->getTree()->xTotals.push_back(fusion::at_c<2>(attr));
+        this->getTree()->xTotals.push_back(fusion::at_c<3>(attr));
+        this->getTree()->xTotals.push_back(fusion::at_c<4>(attr));
+        this->getTree()->xTotals.push_back(fusion::at_c<5>(attr));
     };
 
     bool parseStatus = x3::parse(content.begin(), 

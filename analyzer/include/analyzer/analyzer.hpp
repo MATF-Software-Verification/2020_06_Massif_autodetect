@@ -36,11 +36,11 @@ private:
 class XtMemoryAnalyzer : public FixifAnalyzer
 {
 public:
-    XtMemoryAnalyzer(const std::vector<std::shared_ptr<Node>>& nodes)
-        : mNodes(nodes)
+    XtMemoryAnalyzer(const std::shared_ptr<XTreeMemory> tree)
+        : xTree(tree)
     {}
     void run() override;
 
 private:
-    std::vector<std::shared_ptr<Node>> mNodes;
+    std::shared_ptr<XTreeMemory> xTree;
 };

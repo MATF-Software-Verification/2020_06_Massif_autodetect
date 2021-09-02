@@ -21,6 +21,7 @@ public:
     
     ParserStatus parse();
     friend std::ostream& operator<< (std::ostream &out, const MassifParser &mp);
+    
     inline const std::vector<std::shared_ptr<Snapshot>>& getSnapshots() {
         if (status == ParserStatus::ePARSER_OK) {
             return mSnapshots;
@@ -40,6 +41,7 @@ public:
     }
 
     void run();
+
 private:
     std::string mDesc;
     std::string mCmd;
@@ -55,7 +57,10 @@ private:
 class XtmemoryParser
 {
 public:
-    XtmemoryParser() = default;
+    XtmemoryParser(){
+        xTree = std::make_shared<XTreeMemory>();
+    }
+
     XtmemoryParser(const std::string& path);
     ~XtmemoryParser();
 
@@ -66,7 +71,7 @@ public:
     
     ParserStatus parse();
     friend std::ostream& operator<< (std::ostream &out, const XtmemoryParser &mp);
-    inline const XTreeMemory& getTree() {
+    inline const std::shared_ptr<XTreeMemory>& getTree() {
         if (status == ParserStatus::ePARSER_OK) {
             return xTree;
         } else {
@@ -77,8 +82,8 @@ public:
 
     void run();
     
-    XTreeMemory xTree;
-
+private:
+    std::shared_ptr<XTreeMemory> xTree;
     std::ifstream xFile;
     std::stringstream xContent;
     ParserStatus status = ParserStatus::ePARSER_OK;

@@ -168,8 +168,13 @@ void MassifAnalyzer::run()
 void XtMemoryAnalyzer::run()
 {
     //std::cout << "Analyze xtmemory.kcg.pid file: " << std::endl;  
-    for(auto const& node : mNodes)
+    for(auto const& node : xTree->getNodes())
     {
         std::cout << *node.get() << std::endl;
     }
+
+    /*std::cout <<  "Program stotals: " << std::endl;
+    std::cout << "curB:" << t->xTotals[0] << " curBk:" << t->xTotals[1] 
+              << " totB:" << t->xTotals[2] << " totBk:" << t->xTotals[3] 
+              << " totFdB:" << t->xTotals[4] << " totFdBk:" << t->xTotals[5] << std::endl;*/
 }
