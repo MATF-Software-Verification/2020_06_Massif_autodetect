@@ -1,6 +1,7 @@
 #include <analyzer/analyzer.hpp>
 #include <numeric>
 #include <fstream>
+#include <istream>
 
 void MassifAnalyzer::processPeak()
 {
@@ -207,23 +208,53 @@ bool XtMemoryAnalyzer::appendToSource()
                     
                     
                 });
-    for (auto const& [path, streams]: files)
+    for (auto& [path, streams]: files)
     {
+        auto isOOpen = streams.second.is_open();
         auto str = path;
+        if (!streams.first.is_open()) continue;
         std::vector<std::shared_ptr<Node>> filtered_nodes;
-        std::copy_if(xTree->getNodes().begin(), xTree->getNodes().end(),
+        auto it = xTree->getNodes().begin() + 1;
+        std::copy_if(it, xTree->getNodes().end(),
                         std::back_inserter(filtered_nodes),
                         [&](const auto node) {
                             
                              return str == node->xFile;   
                         });
 
-        std::cout << "000000000000000000000000000000000" << std::endl;
+        std::string line;
+        for (int i = 1; std::getline(streams.first, line); i++)
+        {
+            uint32_t curB = 0, curBk = 0, totB = 0, totBk = 0, totFdB = 0, totFdBk = 0;
+            bool hasData = false;
+            for (const auto& node: filtered_nodes) 
+            {
+                if (node->xLine == i) {
+                    hasData = true;
+                    curB += node->xAllocation[0];
+                    curBk += node->xAllocation[1];
+                    totB += node->xAllocation[2];
+                    totBk += node->xAllocation[3];
+                    totFdB += node->xAllocation[4];
+                    totFdBk += node->xAllocation[5];
+                }
+            }
+            (isOOpen ? streams.second : std::cout) << line;
+            if (hasData) {
+                (isOOpen ? streams.second : std::cout) << "\t// "
+                    << "curB:" << curB << " curBk:" << curBk 
+                    << " totB:" << totB << " totBk:" << totBk 
+                    << " totFdB:" << totFdB << " totFdBk:" << totFdBk 
+                    << std::endl;
+            }
+            else {
+                (isOOpen ? streams.second : std::cout) << std::endl;
+            }
 
-        // for (const auto& x: filtered_nodes)
-        // {
-        //     std::cout << "@@@@@ " << x->xFile << " ---- line " << x->xLine << std::endl;
-        // }    
+        }
+    
+        streams.first.close();
+        if (isOOpen)  streams.second.close();
     }
 
     
