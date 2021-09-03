@@ -26,6 +26,7 @@ private:
     void processPeak();
     void processLastSnapshot();
     void processSnapshots();
+    void process();
     
     std::shared_ptr<Snapshot> mPeakSnapshot;
     std::vector<std::shared_ptr<Snapshot>> mSnapshots;

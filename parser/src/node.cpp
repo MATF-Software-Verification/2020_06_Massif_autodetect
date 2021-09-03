@@ -6,6 +6,11 @@ void XTreeMemory::addNode(std::shared_ptr<Node> node)
     this->xNodes.push_back(node);
 }
 
+void XTreeMemory::addTotals(std::vector<int> xTotals)
+{
+    this->xTotals = xTotals;
+}
+
 
 bool Node::setChild(std::shared_ptr<Node> child)
 {
@@ -42,9 +47,10 @@ std::ostream& operator<< (std::ostream &out, const Node &t)
     }
 
     std::vector<std::string> splits;
-    boost::algorithm::split(splits, t.xFile, boost::is_any_of("/"));
+    //boost::algorithm::split(splits, t.xFile, boost::is_any_of("/"));
 
-    out << t.xFunction << "(" << *(splits.rbegin()) << ":" << t.xLine << ")";
+    //out << t.xFunction << "(" << *(splits.rbegin()) << ":" << t.xLine << ")";
+    out << t.xFunction << "(" << t.xFile << ":" << t.xLine << ")";
     if (t.xChildNode != nullptr){
         out << " => ";
         out << *(t.xChildNode.get());

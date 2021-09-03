@@ -29,10 +29,15 @@ class XTreeMemory
 public:
     XTreeMemory() = default;
     void addNode(std::shared_ptr<Node> xNode);
+    void addTotals(std::vector<int> xTotals);
 
     inline const std::vector<std::shared_ptr<Node>>& getNodes() {
        return xNodes;
     } 
+
+    inline const std::vector<int>& getTotals(){
+        return xTotals;
+    }
 
 private:
     std::vector<std::shared_ptr<Node>> xNodes; 
