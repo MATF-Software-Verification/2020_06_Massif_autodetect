@@ -1,6 +1,8 @@
 #pragma once
 #include <vector>
 #include <algorithm>
+#include <map>
+
 #include <parser/snapshot.hpp>
 #include <parser/node.hpp>
 
@@ -34,12 +36,13 @@ private:
 class XtMemoryAnalyzer : public FixifAnalyzer
 {
 public:
-    XtMemoryAnalyzer(const std::shared_ptr<XTreeMemory> tree)
-        : xTree(tree)
+    XtMemoryAnalyzer(const std::shared_ptr<XTreeMemory> tree, const std::map<int, std::string>& fileMap)
+        : xTree(tree), mFileMap(fileMap)
     {}
     void run() override;
 
 private:
     std::shared_ptr<XTreeMemory> xTree;
+    std::map<int, std::string> mFileMap;
     bool appendToSource();
 };

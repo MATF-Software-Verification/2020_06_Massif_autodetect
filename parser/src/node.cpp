@@ -23,7 +23,7 @@ void reset () {
 
 std::ostream& operator<< (std::ostream &out, const Node &t)
 {
-    out << "###################################################" << std::endl;
+    out << "\n###################################################" << std::endl;
     if (t.xAllocation.size() > 0){
         if (t.xAllocation[3] >= 3) {
             red();
@@ -46,6 +46,7 @@ std::ostream& operator<< (std::ostream &out, const Node &t)
     boost::algorithm::split(splits, t.xFile, boost::is_any_of("/"));
 
     out << t.xFunction << "(" << *(splits.rbegin()) << ":" << t.xLine << ")";
+    // out << t.xFunction << "(" << t.xFile << ":" << t.xLine << ")";
     if (t.xChildNode != nullptr){
         out << " => ";
         out << *(t.xChildNode.get());

@@ -251,12 +251,12 @@ XtmemoryParser::ParserStatus XtmemoryParser::parse()
     {
         auto attr = _attr(ctx);
 
-        this->getTree()->xTotals.push_back(fusion::at_c<0>(attr));
-        this->getTree()->xTotals.push_back(fusion::at_c<1>(attr));
-        this->getTree()->xTotals.push_back(fusion::at_c<2>(attr));
-        this->getTree()->xTotals.push_back(fusion::at_c<3>(attr));
-        this->getTree()->xTotals.push_back(fusion::at_c<4>(attr));
-        this->getTree()->xTotals.push_back(fusion::at_c<5>(attr));
+        this->getTree()->getTotals().push_back(fusion::at_c<0>(attr));
+        this->getTree()->getTotals().push_back(fusion::at_c<1>(attr));
+        this->getTree()->getTotals().push_back(fusion::at_c<2>(attr));
+        this->getTree()->getTotals().push_back(fusion::at_c<3>(attr));
+        this->getTree()->getTotals().push_back(fusion::at_c<4>(attr));
+        this->getTree()->getTotals().push_back(fusion::at_c<5>(attr));
     };
 
     bool parseStatus = x3::parse(content.begin(), 

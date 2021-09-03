@@ -1,7 +1,6 @@
 #include <analyzer/analyzer.hpp>
 #include <numeric>
-#include <map>
-
+#include <fstream>
 
 void MassifAnalyzer::processPeak()
 {
@@ -173,6 +172,8 @@ void XtMemoryAnalyzer::run()
         std::cout << *node.get() << std::endl;
     }
 
+    appendToSource();
+
     /*std::cout <<  "Program stotals: " << std::endl;
     std::cout << "curB:" << t->xTotals[0] << " curBk:" << t->xTotals[1] 
               << " totB:" << t->xTotals[2] << " totBk:" << t->xTotals[3] 
@@ -181,7 +182,50 @@ void XtMemoryAnalyzer::run()
 
 bool XtMemoryAnalyzer::appendToSource()
 {
-    
 
+    std::map<std::string, std::pair<std::ifstream, std::ofstream>> files;
+    std::transform(mFileMap.begin(), mFileMap.end(), std::inserter(files, files.end()),
+                [](auto const& arg) -> std::pair<std::string, std::pair<std::ifstream, std::ofstream>> {
+                    std::string path(arg.second);
+                    std::ifstream iStream(path);
+                    std::string path_of_copy;
+
+                    if (iStream.is_open()) {
+                        auto idx = path.rfind('.');
+                        if (idx != std::string::npos) {
+                            path_of_copy = path.substr(0, idx) + ".fixif" + path.substr(idx);
+                        }
+                        std::cout << path_of_copy << "\t\t\t FIXIF" << std::endl;
+                     
+                    }
+
+                    return std::make_pair(
+                        path, 
+                        std::make_pair(std::move(iStream), std::ofstream(path_of_copy))
+                    );   
+
+                    
+                    
+                });
+    for (auto const& [path, streams]: files)
+    {
+        auto str = path;
+        std::vector<std::shared_ptr<Node>> filtered_nodes;
+        std::copy_if(xTree->getNodes().begin(), xTree->getNodes().end(),
+                        std::back_inserter(filtered_nodes),
+                        [&](const auto node) {
+                            
+                             return str == node->xFile;   
+                        });
+
+        std::cout << "000000000000000000000000000000000" << std::endl;
+
+        // for (const auto& x: filtered_nodes)
+        // {
+        //     std::cout << "@@@@@ " << x->xFile << " ---- line " << x->xLine << std::endl;
+        // }    
+    }
+
+    
     return true;
 }

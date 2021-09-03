@@ -54,7 +54,8 @@ int main(int argc, char** argv)
                 std::cerr << "Failed parsing " << "xtmemory.kcg." + std::to_string(pid) << std::endl;
                 return 1; 
             } else {
-                FixifAnalyzer* xtmemoryAnalyzer = new XtMemoryAnalyzer(std::move(xtParser.getTree()));
+                FixifAnalyzer* xtmemoryAnalyzer = new XtMemoryAnalyzer(std::move(xtParser.getTree()),
+                                                                xtParser.getFileMap());
                 xtmemoryAnalyzer->run();
                 delete xtmemoryAnalyzer;
             }    
