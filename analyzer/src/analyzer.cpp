@@ -1,7 +1,7 @@
 #include <analyzer/analyzer.hpp>
 #include <numeric>
-#include <map>
-
+#include <fstream>
+#include <istream>
 
 void MassifAnalyzer::processPeak()
 {
@@ -133,54 +133,47 @@ void MassifAnalyzer::processSnapshots()
             currentInfo = getMapByTree(mSnapshots[i+1]->tree);
         }
 
-        /* Desila se nova alokacija*/
-        if (diff > 0){
 
-            /* za svaku putanju u drugom stablu */
-            for (auto xCurrent: currentInfo) 
-            {
-                /* pronaci istu putanju u prethodnom, prvom detaljnom stablu */
-                auto xPrevious = previousInfo.find(xCurrent.first);
-                
-                /* ukoliko takvo nesto ne postoji, pronasli smo mesto nove alokacije */
-                if (xPrevious == previousInfo.end()) 
-                {
-                    timeMap[xCurrent.first] = mSnapshots[i+1]->time;
-                    if(diff > averageDifference * 1.5){
-                        outliers[xCurrent.first] = diff;
-                    }
-                    break;
-                } 
-                else if(xCurrent.second - (*xPrevious).second == diff && diff > averageDifference*1.5) 
-                {
-                    outliers[xCurrent.first] = diff;
-                    break;
-                }
-            }
-        } 
-        /* Desila se dealokacija */
-        else if (diff < 0){
+        /* za svaku putanju u drugom stablu */
+        for (auto xCurrent: currentInfo) 
+        {
+            /* pronaci istu putanju u prethodnom, prvom detaljnom stablu */
+            auto xPrevious = previousInfo.find(xCurrent.first);
             
-            /* za svaku putanju u prvom (i) stablu */
-            for (auto xPrevious: previousInfo) 
+            /* ukoliko takvo nesto ne postoji, pronasli smo mesto nove alokacije */
+            if (xPrevious == previousInfo.end()) 
             {
-                /* pronaci istu putanju u sledecem, drugom detaljnom stablu (i+1)*/
-                auto xCurrent = currentInfo.find(xPrevious.first);
-                
-                /* ukoliko takvo nesto ne postoji, pronasli smo mesto dealokacije */
-                if (xCurrent == currentInfo.end()) 
-                {
-                    auto timeDiff =  mSnapshots[i+1]->time; - timeMap[xPrevious.first];
-                    if (timeDiff > timeOfExecution/3.0){
-                        /* alokacija postoji vise od trecine vremena izvrsavanja programa, proveriti da li je to u redu */
-                        std::cout << xPrevious.first << " (time diff: " << timeDiff  << ")" << std::endl;
-                    }
-                    break;
+                timeMap[xCurrent.first] = mSnapshots[i+1]->time;
+                if(diff > averageDifference * 1.5){
+                    outliers[xCurrent.first] = diff;
                 }
+                break;
+            } 
+            else if(xCurrent.second - (*xPrevious).second == diff && diff > averageDifference*1.5) 
+            {
+                outliers[xCurrent.first] = diff;
+                break;
             }
-        }   /* Inace nista se nije desilo, snapshot je ponovljen */   
-
-    }
+        }
+        
+        /* za svaku putanju u prvom (i) stablu */
+        for (auto xPrevious: previousInfo) 
+        {
+            /* pronaci istu putanju u sledecem, drugom detaljnom stablu (i+1)*/
+            auto xCurrent = currentInfo.find(xPrevious.first);
+            
+            /* ukoliko takvo nesto ne postoji, pronasli smo mesto dealokacije */
+            if (xCurrent == currentInfo.end()) 
+            {
+                auto timeDiff =  mSnapshots[i+1]->time - timeMap[xPrevious.first];
+                if (timeDiff > timeOfExecution/3.0){
+                    /* alokacija postoji vise od trecine vremena izvrsavanja programa, proveriti da li je to u redu */
+                    std::cout << xPrevious.first << " (time diff: " << timeDiff  << ")" << std::endl;
+                }
+                break;
+            }
+        }
+    } 
 
     /*  slucaj kada ne postoji dealokacija, memorija je zadrzana do kraja*/
     std::map<std::string,int> lastSnapshot = getMapByTree((*mSnapshots.rbegin())->tree);
@@ -188,8 +181,6 @@ void MassifAnalyzer::processSnapshots()
         auto timeDiff = timeOfExecution - timeMap[snap.first];
 
         if(timeDiff > timeOfExecution/3.0){
-            printf("\033[1;31m");
-            printf("\033[0m");
             std::cout << snap.first << " (time diff: " << timeDiff  << ")" <<  std::endl;
         }
     }
@@ -220,6 +211,7 @@ void MassifAnalyzer::run()
 }
 
 
+
 void XtMemoryAnalyzer::run()
 {
     //std::cout << "Analyze xtmemory.kcg.pid file: " << std::endl;  
@@ -228,11 +220,94 @@ void XtMemoryAnalyzer::run()
         std::cout << *node.get() << std::endl;
     }
 
-    auto totals = xTree->getTotals();
+    appendToSource();
+
+    /*auto totals = xTree->getTotals();
     printf("\033[1;31m");
     std::cout <<  "PROGRAM TOTALS" << std::endl;
     printf("\033[0m");
     std::cout << "curB:" << totals[0] << " curBk:" << totals[1] 
               << " totB:" << totals[2] << " totBk:" << totals[3] 
-              << " totFdB:" << totals[4] << " totFdBk:" << totals[5] << std::endl;
+              << " totFdB:" << totals[4] << " totFdBk:" << totals[5] << std::endl;*/
+}
+
+bool XtMemoryAnalyzer::appendToSource()
+{
+    std::map<std::string, std::pair<std::ifstream, std::ofstream>> files;
+    std::transform(mFileMap.begin(), mFileMap.end(), std::inserter(files, files.end()),
+                [](auto const& arg) -> std::pair<std::string, std::pair<std::ifstream, std::ofstream>> {
+                    std::string path(arg.second);
+                    std::ifstream iStream(path);
+                    std::string path_of_copy;
+
+                    if (iStream.is_open()) {
+                        auto idx = path.rfind('.');
+                        if (idx != std::string::npos) {
+                            path_of_copy = path.substr(0, idx) + ".fixif" + path.substr(idx);
+                        }
+                        printf("\033[32m");
+                        std::cout << "Generated file: " << path_of_copy << std::endl;
+                        printf("\033[0m");
+                    }
+
+                    return std::make_pair(
+                        path, 
+                        std::make_pair(std::move(iStream), std::ofstream(path_of_copy))
+                    );   
+
+                    
+                    
+                });
+
+    for (auto& [path, streams]: files)
+    {
+        auto isOOpen = streams.second.is_open();
+        auto str = path;
+        if (!streams.first.is_open()) continue;
+        std::vector<std::shared_ptr<Node>> filtered_nodes;
+        auto it = xTree->getNodes().begin() + 1;
+        std::copy_if(it, xTree->getNodes().end(),
+                        std::back_inserter(filtered_nodes),
+                        [&](const auto node) {
+                            
+                             return str == node->xFile;   
+                        });
+
+        std::string line;
+        for (int i = 1; std::getline(streams.first, line); i++)
+        {
+            uint32_t curB = 0, curBk = 0, totB = 0, totBk = 0, totFdB = 0, totFdBk = 0;
+            bool hasData = false;
+            for (const auto& node: filtered_nodes) 
+            {
+                if (node->xLine == i) {
+                    hasData = true;
+                    curB += node->xAllocation[0];
+                    curBk += node->xAllocation[1];
+                    totB += node->xAllocation[2];
+                    totBk += node->xAllocation[3];
+                    totFdB += node->xAllocation[4];
+                    totFdBk += node->xAllocation[5];
+                }
+            }
+            (isOOpen ? streams.second : std::cout) << line;
+            if (hasData) {
+                (isOOpen ? streams.second : std::cout) << "\t// "
+                    << "curB:" << curB << " curBk:" << curBk 
+                    << " totB:" << totB << " totBk:" << totBk 
+                    << " totFdB:" << totFdB << " totFdBk:" << totFdBk 
+                    << std::endl;
+            }
+            else {
+                (isOOpen ? streams.second : std::cout) << std::endl;
+            }
+
+        }
+    
+        streams.first.close();
+        if (isOOpen)  streams.second.close();
+    }
+
+    
+    return true;
 }

@@ -12,6 +12,9 @@ public:
     : xFile(file), xFunction(function), xLine(line), xAllocation(allocation), xChildNode(nullptr)
     {}
 
+
+    friend class XtMemoryAnalyzer;
+
     bool setChild(std::shared_ptr<Node> child);
     std::ostream& printData(std::ostream &out, int level) const;
     friend std::ostream& operator<< (std::ostream &out, const Node &t);
@@ -30,17 +33,19 @@ public:
     XTreeMemory() = default;
     void addNode(std::shared_ptr<Node> xNode);
     void addTotals(std::vector<int> xTotals);
+    
+    inline std::vector<std::shared_ptr<Node>> getNodes() const {
+        return xNodes;
+    }
 
-    inline const std::vector<std::shared_ptr<Node>>& getNodes() {
-       return xNodes;
-    } 
-
-    inline const std::vector<int>& getTotals(){
+    inline std::vector<int> getTotals() const {
         return xTotals;
     }
 
+    friend class XtMemoryAnalyzer;
 private:
     std::vector<std::shared_ptr<Node>> xNodes; 
     std::vector<int> xTotals;
+
 };
 
