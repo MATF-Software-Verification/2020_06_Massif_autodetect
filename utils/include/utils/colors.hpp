@@ -1,22 +1,22 @@
 #pragma once
 #include <stdio.h>
 
-void red(){
+inline void red(){
     printf("\033[0;31m");
 }
 
-void bold_red(){
+inline void bold_red(){
     printf("\033[1;31m");
 }
 
-void reset(){
+inline void reset(){
     printf("\033[0m");
 }
 
-void green(){
+inline void green(){
     printf("\033[32m");
 }
 
-void blue(){
+inline void blue(){
     printf("\033[0;34m");
 }
