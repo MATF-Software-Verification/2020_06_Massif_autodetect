@@ -12,6 +12,9 @@ class CommandLineOpts
 public:
     CommandLineOpts();
     ~CommandLineOpts() = default;
+    /**
+     * @enum Indicator of option provided from user
+    */
     enum class CommandLineStatus {
         eSTATUS_OK,
         eSTATUS_HELP,
@@ -21,6 +24,12 @@ public:
         eSTATUS_EXE
     };
 
+    /**
+     * @brief Parsing command line args function using boost library
+     * @param int Number of args
+     * @param char** List of args
+     * @return Indicator of option
+    */
     CommandLineStatus parse(int argc, char** argv);
 
 

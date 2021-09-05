@@ -15,9 +15,14 @@ class IFixifAnalyzer
 public:
     IFixifAnalyzer() {}
     virtual ~IFixifAnalyzer() {}
+    /**
+     * @brief Method which executes logic of fixif analyzer for certain type of file
+    */
     virtual void run() = 0;
 };
-
+/**
+ * @brief Class that implements logic of analyzing massif out files.
+*/
 class MassifAnalyzer : public IFixifAnalyzer
 {
 public:
@@ -36,6 +41,9 @@ private:
     std::vector<std::shared_ptr<Snapshot>> mSnapshots;
 };
 
+/**
+ * @brief Class that implements logic of analyzing massif out files.
+*/
 class XtMemoryAnalyzer : public IFixifAnalyzer
 {
 public:
@@ -47,5 +55,9 @@ public:
 private:
     std::shared_ptr<XTreeMemory> xTree;
     std::map<int, std::string> mFileMap;
+    /**
+     * @brief Function which appends important information from xtree to source file to be easier for overview.
+     * @return Indicator of success  
+    */
     bool appendToSource();
 };

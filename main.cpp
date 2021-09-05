@@ -27,7 +27,7 @@ int main(int argc, char** argv)
                 return 1;
             }
     
-            FixifAnalyzer* analyzer = new MassifAnalyzer(std::move(massParser.getSnapshots()), std::move(massParser.getPeakSnapshot()));
+            IFixifAnalyzer* analyzer = new MassifAnalyzer(std::move(massParser.getSnapshots()), std::move(massParser.getPeakSnapshot()));
             analyzer->run();
             delete analyzer;
             break;
@@ -44,7 +44,7 @@ int main(int argc, char** argv)
                 std::cerr << "Failed parsing " << "massif.out." + std::to_string(pid) << std::endl;
                 return 1;
             } else {
-                FixifAnalyzer*  massifAnalyzer = new MassifAnalyzer( std::move(massParser.getSnapshots()), std::move(massParser.getPeakSnapshot()));
+                IFixifAnalyzer*  massifAnalyzer = new MassifAnalyzer( std::move(massParser.getSnapshots()), std::move(massParser.getPeakSnapshot()));
                 massifAnalyzer->run();
                 delete massifAnalyzer;
             }
@@ -54,7 +54,7 @@ int main(int argc, char** argv)
                 std::cerr << "Failed parsing " << "xtmemory.kcg." + std::to_string(pid) << std::endl;
                 return 1; 
             } else {
-                FixifAnalyzer* xtmemoryAnalyzer = new XtMemoryAnalyzer(std::move(xtParser.getTree()),
+                IFixifAnalyzer* xtmemoryAnalyzer = new XtMemoryAnalyzer(std::move(xtParser.getTree()),
                                                                 xtParser.getFileMap());
                 xtmemoryAnalyzer->run();
                 delete xtmemoryAnalyzer;

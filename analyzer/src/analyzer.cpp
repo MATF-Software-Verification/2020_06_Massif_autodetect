@@ -266,13 +266,11 @@ bool XtMemoryAnalyzer::appendToSource()
         if (!streams.first.is_open()) continue;
         std::vector<std::shared_ptr<Node>> filtered_nodes;
         auto it = xTree->getNodes().begin() + 1;
-        std::copy_if(it, xTree->getNodes().end(),
-                        std::back_inserter(filtered_nodes),
-                        [&](const auto node) {
-                            
-                             return str == node->xFile;   
-                        });
+        for (auto& node: xTree->getNodes())
+            if (str == node->xFile)
+                    filtered_nodes.push_back(node);
 
+        
         std::string line;
         for (int i = 1; std::getline(streams.first, line); i++)
         {
