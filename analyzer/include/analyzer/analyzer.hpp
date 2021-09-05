@@ -2,7 +2,6 @@
 #include <vector>
 #include <algorithm>
 #include <map>
-
 #include <parser/snapshot.hpp>
 #include <parser/node.hpp>
 

@@ -33,10 +33,12 @@ std::ostream& operator<< (std::ostream &out, const Node &t)
             out << "The memory allocated here is not freed." << std::endl;
             reset();
         }
-
-        out << "current: " << t.xAllocation[0] << " B (" << t.xAllocation[1] << " block(s));" 
-              << " total: " << t.xAllocation[2] << " B (" << t.xAllocation[3] << " block(s));" 
-              << " freed: " << t.xAllocation[4] << " B (" << t.xAllocation[5] << " block(s))" << std::endl;
+        
+        blue();
+        out << "current " << t.xAllocation[0] << "B (" << t.xAllocation[1] << " block(s));" 
+              << " total " << t.xAllocation[2] << "B (" << t.xAllocation[3] << " block(s));" 
+              << " freed " << t.xAllocation[4] << "B (" << t.xAllocation[5] << " block(s))" << std::endl;
+        reset();
     }
 
     

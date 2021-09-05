@@ -19,14 +19,14 @@ void MassifAnalyzer::processPeak()
         reset();
     } else {
         blue();
-        std::cout << "Peak from massif report: " << "(" << mPeakSnapshot->memHeapB << " bytes allocated)";
+        std::cout << "Peak from massif report " << "(" << mPeakSnapshot->memHeapB << " bytes allocated)";
         reset();
         std::cout << *mPeakSnapshot;
     }
     
     if(realPeakSnapshot != nullptr && mPeakSnapshot->memHeapB < realPeakSnapshot->memHeapB){
         blue();
-        std::cout << "Peak is not precisely determined by massif. Real peak: (" << realPeakSnapshot->memHeapB << " bytes allocated)";
+        std::cout << "Peak is not precisely determined by massif. Real peak (" << realPeakSnapshot->memHeapB << " bytes allocated)";
         reset();
         std::cout << *realPeakSnapshot;
     }
@@ -133,7 +133,7 @@ void MassifAnalyzer::processSnapshots()
     red();
     std::cout << "Allocation exist more than third of time of program execution ";
     reset();
-    std::cout << " (Time of execution is " << timeOfExecution << " ms):" << std::endl;
+    std::cout << "(Time of execution is " << timeOfExecution << " ms):" << std::endl;
 
 
     for(int i = 0; i < mSnapshots.size() - 1; i++)
@@ -209,7 +209,7 @@ void MassifAnalyzer::processSnapshots()
     std::cout << "Allocated bytes overcome one and a half time more than average program allocation size ";
     reset();
 
-    std::cout << " (Average value of allocation is " << averageDifference << " bytes): " << std::endl;
+    std::cout << "(Average value of allocation is " << averageDifference << " bytes): " << std::endl;
     
     for(auto outlier: outliers){
         std::cout << outlier.second << " bytes allocated:" <<  std::endl; 
@@ -253,9 +253,9 @@ void XtMemoryAnalyzer::run()
     bold_red();
     std::cout <<  "PROGRAM TOTALS" << std::endl;
     reset();
-    std::cout << "current: " << totals[0] << "B (" << totals[1]  << "block(s));"
-              << " total: " << totals[2] << "B (" << totals[3] << " block(s));"
-              << " freed: " << totals[4] << "B (" << totals[5] << " block(s))" << std::endl;
+    std::cout << "current " << totals[0] << "B (" << totals[1]  << "block(s));"
+              << " total " << totals[2] << "B (" << totals[3] << " block(s));"
+              << " freed " << totals[4] << "B (" << totals[5] << " block(s))" << std::endl;
 
     appendToSource();
 }

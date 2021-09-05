@@ -7,6 +7,7 @@
 #include <parser/snapshot.hpp>
 #include <parser/node.hpp>
 #include <boost/algorithm/string.hpp>
+
 /**
  * @brief Parser interface
 */
