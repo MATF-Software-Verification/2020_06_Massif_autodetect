@@ -27,6 +27,10 @@ public:
     std::vector<std::shared_ptr<Tree>> children;
 };    
 
+
+/**
+ * @brief Representation of one snapshot 
+*/
 class Snapshot
 {
 public:
@@ -45,14 +49,14 @@ public:
 
     friend std::ostream& operator<< (std::ostream &out, const Snapshot &s);
 
-    int title;
-    int time;
-    int memHeapB;
-    int memHeapExtra;
-    int memStacks;
+    int title; ///< Store corresponding value from massif file field
+    int time; ///< Store corresponding value from massif file field
+    int memHeapB; ///< Store corresponding value from massif file field
+    int memHeapExtra; ///< Store corresponding value from massif file field
+    int memStacks; ///< Store corresponding value from massif file field
 
-    int treeHeaderNumber;
-    int treeHeaderBytes;
+    int treeHeaderNumber; ///< Store corresponding value from massif file field
+    int treeHeaderBytes; ///< Store corresponding value from massif file field
     std::string treeHeaderMessage;
     std::shared_ptr<Tree> tree; 
 };

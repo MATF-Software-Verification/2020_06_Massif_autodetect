@@ -5,3 +5,4 @@ build/
 a.out
 parser/src/1.cpp
 samples/ulaz
+doxy_docs/

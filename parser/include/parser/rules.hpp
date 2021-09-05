@@ -7,6 +7,11 @@ using x3::lit;
 using x3::int_;
 using x3::ulong_;
 
+
+/**
+ * @namespace Contains all grammar rules that are required for parsing massif file 
+ * using boost spirit x3 library
+*/
 namespace massifRules
 {
     auto const rDesc = lit("desc:") >> *(x3::print) >> "\n";
@@ -42,7 +47,10 @@ namespace massifRules
     
 } // namespace massifRules
 
-
+/**
+ * @namespace Contains all grammar rules that are required for parsing xtreememory file 
+ * using boost spirit x3 library
+*/
 namespace xtmemoryRules
 {
     auto const rDesc = lit("# callgrind format") >> "\n"
