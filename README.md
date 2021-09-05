@@ -5,14 +5,20 @@ Korišćenje izlaznih fajlova valgrind-ovog alata Massif u pronalasku neispravno
 * Pobtrebno je na računaru imati instaliranu biblioteku [Boost](https://www.boost.org/) >= 1.50
 kao i sistem [cmake](https://www.cmake.org) >= 3.9
 ## Build koraci
-
-- ``mkdir build `` 
-- ``cd build`` 
-- ``cmake ..``
-- ``cmake --build . `` ili ``make``
-
-ili način na koji preferirate bild sistemom cmake.
-
+Najbolji način je kreirati poseban direktorijum u na nivou korenog dirketorijuma repozitorijuma.
+Nakon što se pozicionirate u novokreirani direktorijum pokrenuti 
+``cmake ..``  
+nakon toga komandom ``cmake --build .`` biće kreiran izvršivi fajl pod nazivom `fixif`
+### Uzorci sa testiranje  
+U direktorijumu *samples* moguće je naći nekoliko jednostavnih .c programa koji možete prevesti u izvršive fajlove (preporučeno sa debug simbolima)
+   
 ## Upotreba
-    Pokretanjem alata uz opciju --help dobijaju
-    se sva neophodna uputstva za upotebu. 
+    Program Options:  
+    -h [ --help ]            Display help menu  
+    -v [ --version ]         Display program version
+    -m [ --massif ] arg      Path to massif file
+    -e [ --executable ] arg  Path to executable file
+    
+    
+## Dokumentacija 
+   [Link do tehničke dokumentacije](http://alas.matf.bg.ac.rs/~mi16077/doxy_docs/html/)
