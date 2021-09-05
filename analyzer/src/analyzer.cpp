@@ -5,13 +5,15 @@
 
 void MassifAnalyzer::processPeak()
 {
-    std::cout << "#PEAK#" << std::endl;
+    printf("\033[1;31m");
+    std::cout << "PEAK" << std::endl;
+    printf("\033[0m");
 
     /* ako peak ne postoji znaci da memorija nigde nije oslobadjana,
        svakako bi trebealo korisnika obavestiti o tome */
     
     if(mPeakSnapshot == nullptr){
-        std::cout << "Peak doesn't exist." << std::endl;
+        std::cout << "Peak doesn't exist (memory is not freed at any point)." << std::endl;
         return;
     }
     
@@ -22,7 +24,9 @@ void MassifAnalyzer::processPeak()
 
 void MassifAnalyzer::processLastSnapshot()
 {
-    std::cout << "#STILL ALLOCATED#" << std::endl;
+    printf("\033[1;31m");
+    std::cout << "STILL ALLOCATED" << std::endl;
+    printf("\033[0m");
 
     auto snapshot = mSnapshots.back();
     auto stillAllocated = snapshot->memHeapB;
@@ -75,7 +79,7 @@ std::map<std::string, int> getMapByTree(std::shared_ptr<Tree> tree)
     {
         std::vector<std::pair<std::string, int>> pathsOfBytes = getPath(child);
         
-        /* svaku putanju smestiti u mapu u kojoj je kljuc  putanja, a vrednost kolicina alociranih bajtova na toj putanji  */
+        /* svaku putanju smestiti u mapu u kojoj je kljuc putanja, a vrednost kolicina alociranih bajtova na toj putanji  */
         for(auto path: pathsOfBytes) 
         {
             mapByTree[path.first] = path.second;
@@ -102,53 +106,95 @@ void MassifAnalyzer::processSnapshots()
             counter += 1;
         }
     }
-
     auto averageDifference = sum/counter;
 
-    std::cout << "#OUTLIERS#" << std::endl;
-    std::cout << "Average value of allocated bytes: " << averageDifference << " bytes " << std::endl;
-    
-    std::vector<std::shared_ptr<Snapshot>> outliers;
+    std::map<std::string, int> timeMap;
+    std::map<std::string, int> outliers;
+
+    auto timeOfExecution = (*mSnapshots.rbegin())->time;
+
+    printf("\033[1;31m");;
+    std::cout << "OUTLIERS (time)" << std::endl;
+    std::cout << "Allocation exist more than third of time of program execution." << std::endl;
+    printf("\033[0m");
 
     for(int i = 0; i < mSnapshots.size() - 1; i++)
     {
         auto diff = mSnapshots[i+1]->memHeapB - mSnapshots[i]->memHeapB;
+
+        std::map<std::string, int> previousInfo;
+        std::map<std::string, int> currentInfo;
+
+        if (mSnapshots[i]->tree != nullptr ) {
+            previousInfo = getMapByTree(mSnapshots[i]->tree);
+        } 
         
-        /* ako je razlika znacajna tako da predstavlja autlajer */
-        if(diff > averageDifference * 1.5)
+        if(mSnapshots[i+1]->tree != nullptr){
+            currentInfo = getMapByTree(mSnapshots[i+1]->tree);
+        }
+
+
+        /* za svaku putanju u drugom stablu */
+        for (auto xCurrent: currentInfo) 
         {
-            outliers.push_back(mSnapshots[i+1]);
-
-            std::cout << diff << " bytes allocated:" <<  std::endl; 
-
-            /* ako su dva uzastopna snimka detaljna */
-            if (mSnapshots[i+1]->tree != nullptr && mSnapshots[i]->tree != nullptr) 
+            /* pronaci istu putanju u prethodnom, prvom detaljnom stablu */
+            auto xPrevious = previousInfo.find(xCurrent.first);
+            
+            /* ukoliko takvo nesto ne postoji, pronasli smo mesto nove alokacije */
+            if (xPrevious == previousInfo.end()) 
             {
-                std::map<std::string, int> previousInfo = getMapByTree(mSnapshots[i]->tree);
-                std::map<std::string, int> currentInfo = getMapByTree(mSnapshots[i+1]->tree);
-
-                /* za svaku putanju u drugom detaljnom stablu */
-                for (auto xCurrent: currentInfo) 
-                {
-                    /* pronaci istu putanju u prethodnom, prvom detaljnom stablu */
-                    auto xPrevious = previousInfo.find(xCurrent.first);
-                    
-                    /* ukoliko takvo nesto ne postoji, pronasli smo mesto nove alokacije */
-                    if (xPrevious == previousInfo.end()) 
-                    {
-                        std::cout << "  " << xCurrent.first << std::endl;
-                        break;
-                    }
-
-                    /* u suprotnom, ako postoji i razlika u bajtovim je jednaka upravo trazenoj, onda smo pronasli mesto nove alokacije  */
-                    if (xCurrent.second - (*xPrevious).second == diff) 
-                    {
-                        std::cout << "  " << xCurrent.first << std::endl;
-                        break;
-                    }
+                timeMap[xCurrent.first] = mSnapshots[i+1]->time;
+                if(diff > averageDifference * 1.5){
+                    outliers[xCurrent.first] = diff;
                 }
+                break;
+            } 
+            else if(xCurrent.second - (*xPrevious).second == diff && diff > averageDifference*1.5) 
+            {
+                outliers[xCurrent.first] = diff;
+                break;
             }
         }
+        
+        /* za svaku putanju u prvom (i) stablu */
+        for (auto xPrevious: previousInfo) 
+        {
+            /* pronaci istu putanju u sledecem, drugom detaljnom stablu (i+1)*/
+            auto xCurrent = currentInfo.find(xPrevious.first);
+            
+            /* ukoliko takvo nesto ne postoji, pronasli smo mesto dealokacije */
+            if (xCurrent == currentInfo.end()) 
+            {
+                auto timeDiff =  mSnapshots[i+1]->time - timeMap[xPrevious.first];
+                if (timeDiff > timeOfExecution/3.0){
+                    /* alokacija postoji vise od trecine vremena izvrsavanja programa, proveriti da li je to u redu */
+                    std::cout << xPrevious.first << " (time diff: " << timeDiff  << ")" << std::endl;
+                }
+                break;
+            }
+        }
+    } 
+
+    /*  slucaj kada ne postoji dealokacija, memorija je zadrzana do kraja*/
+    std::map<std::string,int> lastSnapshot = getMapByTree((*mSnapshots.rbegin())->tree);
+    for (auto snap: lastSnapshot){
+        auto timeDiff = timeOfExecution - timeMap[snap.first];
+
+        if(timeDiff > timeOfExecution/3.0){
+            std::cout << snap.first << " (time diff: " << timeDiff  << ")" <<  std::endl;
+        }
+    }
+
+    printf("\033[1;31m");;
+    std::cout << std::endl << "OUTLIERS (bytes)" << std::endl;
+    std::cout << "Allocated bytes overcome 1.5 times more of average program alloction size." << std::endl;
+    printf("\033[0m");
+
+    std::cout << "Average value of allocated bytes: " << averageDifference << " bytes " << std::endl;
+    
+    for(auto outlier: outliers){
+        std::cout << outlier.second << " bytes allocated:" <<  std::endl; 
+        std::cout << "  " << outlier.first << std::endl;
     }
 }
 
@@ -165,6 +211,7 @@ void MassifAnalyzer::run()
 }
 
 
+
 void XtMemoryAnalyzer::run()
 {
     //std::cout << "Analyze xtmemory.kcg.pid file: " << std::endl;  
@@ -175,15 +222,17 @@ void XtMemoryAnalyzer::run()
 
     appendToSource();
 
-    /*std::cout <<  "Program stotals: " << std::endl;
-    std::cout << "curB:" << t->xTotals[0] << " curBk:" << t->xTotals[1] 
-              << " totB:" << t->xTotals[2] << " totBk:" << t->xTotals[3] 
-              << " totFdB:" << t->xTotals[4] << " totFdBk:" << t->xTotals[5] << std::endl;*/
+    /*auto totals = xTree->getTotals();
+    printf("\033[1;31m");
+    std::cout <<  "PROGRAM TOTALS" << std::endl;
+    printf("\033[0m");
+    std::cout << "curB:" << totals[0] << " curBk:" << totals[1] 
+              << " totB:" << totals[2] << " totBk:" << totals[3] 
+              << " totFdB:" << totals[4] << " totFdBk:" << totals[5] << std::endl;*/
 }
 
 bool XtMemoryAnalyzer::appendToSource()
 {
-
     std::map<std::string, std::pair<std::ifstream, std::ofstream>> files;
     std::transform(mFileMap.begin(), mFileMap.end(), std::inserter(files, files.end()),
                 [](auto const& arg) -> std::pair<std::string, std::pair<std::ifstream, std::ofstream>> {
@@ -196,8 +245,9 @@ bool XtMemoryAnalyzer::appendToSource()
                         if (idx != std::string::npos) {
                             path_of_copy = path.substr(0, idx) + ".fixif" + path.substr(idx);
                         }
-                        std::cout << path_of_copy << "\t\t\t FIXIF" << std::endl;
-                     
+                        printf("\033[32m");
+                        std::cout << "Generated file: " << path_of_copy << std::endl;
+                        printf("\033[0m");
                     }
 
                     return std::make_pair(
@@ -208,6 +258,7 @@ bool XtMemoryAnalyzer::appendToSource()
                     
                     
                 });
+
     for (auto& [path, streams]: files)
     {
         auto isOOpen = streams.second.is_open();

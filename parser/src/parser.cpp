@@ -1,5 +1,6 @@
 #include <iostream>
 #include <map>
+#include <tuple>
 #include <parser/parser.hpp>
 #include <parser/rules.hpp>
 #include <boost/spirit/home/x3.hpp>
@@ -38,6 +39,7 @@ std::ostream& operator<< (std::ostream &out, const MassifParser &mp)
     return out;
 }
 
+
 MassifParser::ParserStatus MassifParser::parse()
 {
     using boost::spirit::x3::_attr;
@@ -53,7 +55,7 @@ MassifParser::ParserStatus MassifParser::parse()
         std::string snapshotType = fusion::at_c<5>(attr);
 
         currentSnapshot = std::make_shared<Snapshot>(title, time, memHeapB, memHeapExtra, memStacks);
-       
+
         if(!snapshotType.compare("peak")){
             mPeakSnapshot = currentSnapshot;
         } else {
@@ -143,7 +145,6 @@ XtmemoryParser::~XtmemoryParser()
 
 std::ostream& operator<< (std::ostream &out, const std::shared_ptr<XtmemoryParser> &xtmp)
 {
-   
     for(auto node: xtmp->getTree()->getNodes()){
         out << *node.get();
     }
@@ -162,6 +163,12 @@ XtmemoryParser::ParserStatus XtmemoryParser::parse()
         auto attr = _attr(ctx);
         auto fileNumber = fusion::at_c<0>(attr);
         auto fileName = boost::algorithm::trim_copy(fusion::at_c<1>(attr));
+        
+        if(boost::starts_with(fileName, "/build/")){
+            XtmemoryParser::fileNameMap[fileNumber] = "";
+            return;
+        }
+
         if (fileName == ""){
             fileName = XtmemoryParser::fileNameMap[fileNumber];
         } else {
@@ -182,6 +189,10 @@ XtmemoryParser::ParserStatus XtmemoryParser::parse()
         auto cFiName = boost::algorithm::trim_copy(fusion::at_c<6>(attr));
         auto cFn = fusion::at_c<7>(attr);
         auto cFnName =  boost::algorithm::trim_copy(fusion::at_c<8>(attr));   
+
+
+        if(boost::starts_with(cFiName, "/build/"))
+            return;
 
         if (cFiName == ""){
             cFiName = XtmemoryParser::fileNameMap[cFi];
@@ -219,6 +230,9 @@ XtmemoryParser::ParserStatus XtmemoryParser::parse()
         auto fileNumber = fusion::at_c<0>(attr);
         auto fileName = boost::algorithm::trim_copy(fusion::at_c<1>(attr));
 
+        if(boost::starts_with(fileName, "/build/"))
+            return;
+
         if (fileName == ""){
             fileName = XtmemoryParser::fileNameMap[fileNumber];
         } else {
@@ -227,6 +241,7 @@ XtmemoryParser::ParserStatus XtmemoryParser::parse()
 
         auto functionNumber =  fusion::at_c<2>(attr);
         auto functionName = boost::algorithm::trim_copy(fusion::at_c<3>(attr));  
+        
         if (functionName == ""){
             functionName = XtmemoryParser::functionNameMap[functionNumber];
         } else {
@@ -248,15 +263,11 @@ XtmemoryParser::ParserStatus XtmemoryParser::parse()
     };
     
     auto totals = [&](auto& ctx)
-    {
+    {   
         auto attr = _attr(ctx);
 
-        this->getTree()->getTotals().push_back(fusion::at_c<0>(attr));
-        this->getTree()->getTotals().push_back(fusion::at_c<1>(attr));
-        this->getTree()->getTotals().push_back(fusion::at_c<2>(attr));
-        this->getTree()->getTotals().push_back(fusion::at_c<3>(attr));
-        this->getTree()->getTotals().push_back(fusion::at_c<4>(attr));
-        this->getTree()->getTotals().push_back(fusion::at_c<5>(attr));
+        std::vector<int> totalsArray = {fusion::at_c<0>(attr),fusion::at_c<1>(attr),fusion::at_c<2>(attr),fusion::at_c<3>(attr),fusion::at_c<4>(attr),fusion::at_c<5>(attr)};
+        this->getTree()->addTotals(std::move(totalsArray));
     };
 
     bool parseStatus = x3::parse(content.begin(), 
@@ -264,7 +275,7 @@ XtmemoryParser::ParserStatus XtmemoryParser::parse()
                                 xtmemoryRules::rHeader >> 
                                 +(*(xtmemoryRules::rSubAlloc [subAlloc]) >> 
                                 xtmemoryRules::rDirectAlloc [directAlloc] >> *("\n")) >> 
-                                xtmemoryRules::rTotals);
+                                xtmemoryRules::rTotals [totals]);
 
     return parseStatus ? ParserStatus::ePARSER_OK : ParserStatus::ePARSER_FAIL;
 

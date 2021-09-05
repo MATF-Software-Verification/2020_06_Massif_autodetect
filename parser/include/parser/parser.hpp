@@ -113,6 +113,7 @@ public:
     inline std::map<int, std::string> getFileMap() const {
         return fileNameMap;
     }
+    
 private:
     std::shared_ptr<XTreeMemory> xTree;
     std::ifstream xFile;
