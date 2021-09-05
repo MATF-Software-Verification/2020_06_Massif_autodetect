@@ -39,10 +39,11 @@ private:
     void processSnapshots();
     std::shared_ptr<Snapshot> mPeakSnapshot;
     std::vector<std::shared_ptr<Snapshot>> mSnapshots;
+    std::shared_ptr<Snapshot> realPeakSnapshot;
 };
 
 /**
- * @brief Class that implements logic of analyzing massif out files.
+ * @brief Class that implements logic of analyzing xtmemory kcg files.
 */
 class XtMemoryAnalyzer : public IFixifAnalyzer
 {

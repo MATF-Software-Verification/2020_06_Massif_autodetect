@@ -16,15 +16,15 @@ public:
     std::ostream& printData(std::ostream &out, int level) const;
     friend std::ostream& operator<< (std::ostream &out, const Tree &t);
     
-    int number;
-    int bytes;
-    int line; 
-    int counter;
+    int number; ///< Store corresponding value from massif file field
+    int bytes; ///< Store corresponding value from massif file field
+    int line; ///< Store corresponding value from massif file field
+    int counter; ///< Store corresponding value from massif file field
 
-    std::string location;
-    std::string function;
-    std::string file;
-    std::vector<std::shared_ptr<Tree>> children;
+    std::string location; ///< Store corresponding value from massif file field
+    std::string function; ///< Store corresponding value from massif file field
+    std::string file; ///< Store corresponding value from massif file field
+    std::vector<std::shared_ptr<Tree>> children; ///< Store snapshots from massif file
 };    
 
 
@@ -57,7 +57,7 @@ public:
 
     int treeHeaderNumber; ///< Store corresponding value from massif file field
     int treeHeaderBytes; ///< Store corresponding value from massif file field
-    std::string treeHeaderMessage;
-    std::shared_ptr<Tree> tree; 
+    std::string treeHeaderMessage; ///< Store corresponding value from massif file field
+    std::shared_ptr<Tree> tree; ///< Store corresponding value from massif file field
 };
 

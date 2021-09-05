@@ -3,7 +3,10 @@
 #include <vector>
 #include <iostream>
 #include <memory>
-
+    
+/**
+ * @brief Representation of one allocation call 
+*/
 class Node
 {
 public:
@@ -12,32 +15,46 @@ public:
     : xFile(file), xFunction(function), xLine(line), xAllocation(allocation), xChildNode(nullptr)
     {}
 
-
     friend class XtMemoryAnalyzer;
+    friend std::ostream& operator<< (std::ostream &out, const Node &t);
 
     bool setChild(std::shared_ptr<Node> child);
-    std::ostream& printData(std::ostream &out, int level) const;
-    friend std::ostream& operator<< (std::ostream &out, const Node &t);
-    
+    bool childEsixtence(){
+        return xChildNode != nullptr;
+    }
 private:
-    std::string xFile;
-    std::string xFunction;
-    int xLine;
-    std::vector<int> xAllocation;
-    std::shared_ptr<Node> xChildNode;
+    std::string xFile;  ///< Store corresponding value from xtmemory file field
+    std::string xFunction;  ///< Store corresponding value from xtmemory file field
+    int xLine;  ///< Store corresponding value from xtmemory file field
+    std::vector<int> xAllocation; ///< Store corresponding value from xtmemory file field
+    std::shared_ptr<Node> xChildNode; ///< Store corresponding value from xtmemory file field
 };    
 
+
+/**
+ * @brief Representation of all allocation calls in program in form of tree
+*/
 class XTreeMemory
 {
 public:
     XTreeMemory() = default;
+
     void addNode(std::shared_ptr<Node> xNode);
-    void addTotals(std::vector<int> xTotals);
-    
+    void addTotals(std::vector<int> xTotals);    
+
+
+    /**
+     * @brief Getter for collection of snapshots that is presented in massif file
+     * @return Vector of pointers to Snapshot objects
+    */
     inline std::vector<std::shared_ptr<Node>> getNodes() const {
         return xNodes;
     }
 
+    /**
+     * @brief Getter for info about total memory usage present in xtmemory file
+     * @return Vector of ints
+    */
     inline std::vector<int> getTotals() const {
         return xTotals;
     }
@@ -46,6 +63,5 @@ public:
 private:
     std::vector<std::shared_ptr<Node>> xNodes; 
     std::vector<int> xTotals;
-
 };
 

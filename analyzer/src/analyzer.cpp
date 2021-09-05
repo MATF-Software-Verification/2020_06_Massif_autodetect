@@ -2,31 +2,42 @@
 #include <numeric>
 #include <fstream>
 #include <istream>
+#include <utils/colors.hpp>
 
 void MassifAnalyzer::processPeak()
 {
-    printf("\033[1;31m");
+    bold_red();
     std::cout << "PEAK" << std::endl;
-    printf("\033[0m");
+    reset();
 
     /* ako peak ne postoji znaci da memorija nigde nije oslobadjana,
        svakako bi trebealo korisnika obavestiti o tome */
     
     if(mPeakSnapshot == nullptr){
-        std::cout << "Peak doesn't exist (memory is not freed at any point)." << std::endl;
-        return;
+        blue();
+        std::cout << "Peak doesn't exist in massif report (memory is not freed at any point)." << std::endl;
+        reset();
+    } else {
+        blue();
+        std::cout << "Peak from massif report: " << "(" << mPeakSnapshot->memHeapB << " bytes allocated)";
+        reset();
+        std::cout << *mPeakSnapshot;
     }
     
-    std::cout << mPeakSnapshot->memHeapB << " bytes are allocated" ;
-    std::cout << *mPeakSnapshot;
+    if(realPeakSnapshot != nullptr && mPeakSnapshot->memHeapB < realPeakSnapshot->memHeapB){
+        blue();
+        std::cout << "Peak is not precisely determined by massif. Real peak: (" << realPeakSnapshot->memHeapB << " bytes allocated)";
+        reset();
+        std::cout << *realPeakSnapshot;
+    }
 }
 
 
 void MassifAnalyzer::processLastSnapshot()
 {
-    printf("\033[1;31m");
+    bold_red();
     std::cout << "STILL ALLOCATED" << std::endl;
-    printf("\033[0m");
+    reset();
 
     auto snapshot = mSnapshots.back();
     auto stillAllocated = snapshot->memHeapB;
@@ -93,9 +104,13 @@ std::map<std::string, int> getMapByTree(std::shared_ptr<Tree> tree)
 void MassifAnalyzer::processSnapshots() 
 {
     auto counter = 0, sum = 0;
+    realPeakSnapshot = mSnapshots[0];
 
     for(int i = 0; i < mSnapshots.size() - 1; i++)
     {
+        if (mSnapshots[i+1]->memHeapB > realPeakSnapshot->memHeapB)
+            realPeakSnapshot = mSnapshots[i+1];
+
         /* koliko je u svakom koraku alocirano bajtova */
         auto diff = mSnapshots[i+1]->memHeapB - mSnapshots[i]->memHeapB;
     
@@ -113,10 +128,13 @@ void MassifAnalyzer::processSnapshots()
 
     auto timeOfExecution = (*mSnapshots.rbegin())->time;
 
-    printf("\033[1;31m");;
+    bold_red();
     std::cout << "OUTLIERS (time)" << std::endl;
-    std::cout << "Allocation exist more than third of time of program execution." << std::endl;
-    printf("\033[0m");
+    red();
+    std::cout << "Allocation exist more than third of time of program execution ";
+    reset();
+    std::cout << " (Time of execution is " << timeOfExecution << " ms):" << std::endl;
+
 
     for(int i = 0; i < mSnapshots.size() - 1; i++)
     {
@@ -185,12 +203,13 @@ void MassifAnalyzer::processSnapshots()
         }
     }
 
-    printf("\033[1;31m");;
+    bold_red();
     std::cout << std::endl << "OUTLIERS (bytes)" << std::endl;
-    std::cout << "Allocated bytes overcome 1.5 times more of average program alloction size." << std::endl;
-    printf("\033[0m");
+    red();
+    std::cout << "Allocated bytes overcome one and a half time more than average program allocation size ";
+    reset();
 
-    std::cout << "Average value of allocated bytes: " << averageDifference << " bytes " << std::endl;
+    std::cout << " (Average value of allocation is " << averageDifference << " bytes): " << std::endl;
     
     for(auto outlier: outliers){
         std::cout << outlier.second << " bytes allocated:" <<  std::endl; 
@@ -200,11 +219,11 @@ void MassifAnalyzer::processSnapshots()
 
 void MassifAnalyzer::run()
 {
-    processPeak();
-    std::cout << "-----------------------------------------------------------------------------" << std::endl;
     processLastSnapshot();
     std::cout << "-----------------------------------------------------------------------------" << std::endl;
     processSnapshots();
+    std::cout << "-----------------------------------------------------------------------------" << std::endl;
+    processPeak();
     std::cout << "-----------------------------------------------------------------------------" << std::endl;
 
     return;
@@ -214,21 +233,31 @@ void MassifAnalyzer::run()
 
 void XtMemoryAnalyzer::run()
 {
+    auto write = true;
     //std::cout << "Analyze xtmemory.kcg.pid file: " << std::endl;  
     for(auto const& node : xTree->getNodes())
     {
-        std::cout << *node.get() << std::endl;
+        if(write){
+            std::cout << *node.get() << std::endl;
+        }
+
+        if (node->childEsixtence()){
+            // postoji dete => preskociti ga u ispisivanju
+            write = false;
+        } else {
+            write = true;
+        }
     }
 
-    appendToSource();
-
-    /*auto totals = xTree->getTotals();
-    printf("\033[1;31m");
+    auto totals = xTree->getTotals();
+    bold_red();
     std::cout <<  "PROGRAM TOTALS" << std::endl;
-    printf("\033[0m");
-    std::cout << "curB:" << totals[0] << " curBk:" << totals[1] 
-              << " totB:" << totals[2] << " totBk:" << totals[3] 
-              << " totFdB:" << totals[4] << " totFdBk:" << totals[5] << std::endl;*/
+    reset();
+    std::cout << "current: " << totals[0] << "B (" << totals[1]  << "block(s));"
+              << " total: " << totals[2] << "B (" << totals[3] << " block(s));"
+              << " freed: " << totals[4] << "B (" << totals[5] << " block(s))" << std::endl;
+
+    appendToSource();
 }
 
 bool XtMemoryAnalyzer::appendToSource()
@@ -245,9 +274,9 @@ bool XtMemoryAnalyzer::appendToSource()
                         if (idx != std::string::npos) {
                             path_of_copy = path.substr(0, idx) + ".fixif" + path.substr(idx);
                         }
-                        printf("\033[32m");
-                        std::cout << "Generated file: " << path_of_copy << std::endl;
-                        printf("\033[0m");
+                        green();
+                        std::cout << std::endl << "Generated file: " << path_of_copy << std::endl;
+                        reset();
                     }
 
                     return std::make_pair(
@@ -291,9 +320,9 @@ bool XtMemoryAnalyzer::appendToSource()
             (isOOpen ? streams.second : std::cout) << line;
             if (hasData) {
                 (isOOpen ? streams.second : std::cout) << "\t// "
-                    << "curB:" << curB << " curBk:" << curBk 
-                    << " totB:" << totB << " totBk:" << totBk 
-                    << " totFdB:" << totFdB << " totFdBk:" << totFdBk 
+                    << "current " << curB << "B" << " (" << curBk << " block(s));" 
+                    << " total " << totB << "B (" << totBk << " block(s));"  
+                    << " freed " << totFdB << "B (" << totFdBk  << " block(s));" 
                     << std::endl;
             }
             else {

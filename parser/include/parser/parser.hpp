@@ -29,7 +29,7 @@ public:
 
 
 /**
- * @brief Implementation of parser for massif.out.* 
+ * @brief Implementation of parser for massif.out.* files
 */
 class MassifParser : public IParser
 {
@@ -38,8 +38,8 @@ public:
     MassifParser(const std::string& path);
     ~MassifParser();
     
-    
     ParserStatus parse() override;
+
 public:
     friend std::ostream& operator<< (std::ostream &out, const MassifParser &mp);
     
@@ -84,7 +84,7 @@ private:
 
 
 /**
- * @brief Implementation of xtmemory.kcg.*
+ * @brief Implementation of parser for xtmemory.kcg.* files
 */
 class XtmemoryParser : public IParser
 {
@@ -100,6 +100,10 @@ public:
 public:
     friend std::ostream& operator<< (std::ostream &out, const XtmemoryParser &mp);
   
+    /**
+     * @brief Getter for tree structure containing info from xtmemory.kcg. file
+     * @return Shared pointer to XTreeMemory object
+    */
     inline const std::shared_ptr<XTreeMemory>& getTree() {
         if (status == ParserStatus::ePARSER_OK) {
             return xTree;
@@ -109,18 +113,19 @@ public:
         }
     }
 
-
+    /**
+     * @brief Getter for map containing integer mapped to file name 
+    */
     inline std::map<int, std::string> getFileMap() const {
         return fileNameMap;
     }
     
 private:
-    std::shared_ptr<XTreeMemory> xTree;
-    std::ifstream xFile;
+    std::shared_ptr<XTreeMemory> xTree; ///< Represents structure containing info about allocations
+    std::ifstream xFile; ///< Represents xtmemory.kcg file
     std::stringstream xContent;
     ParserStatus status = ParserStatus::ePARSER_OK;
 
-    std::map<int, std::string> fileNameMap;
-    std::map<int, std::string> functionNameMap;
-    
+    std::map<int, std::string> fileNameMap; ///< Mapping integer to file name
+    std::map<int, std::string> functionNameMap; ///< Mapping integer to function name
 };
