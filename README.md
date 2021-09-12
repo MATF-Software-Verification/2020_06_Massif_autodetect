@@ -21,7 +21,8 @@ U direktorijumu *samples* moguće je naći nekoliko jednostavnih .c programa koj
     
     
 ## Dokumentacija 
-   [Link do tehničke dokumentacije](http://alas.matf.bg.ac.rs/~mi16077/doxy_docs/html/)
+   Dokumentaciju je moguće generisati pokretanjem neke od skripti `gen_and_show_docs.py` ili `gen_and_show_docs.sh`, takođe neophodno je da instalirate alat [doxygen](https://www.doxygen.nl/index.html)
+   Takođe ako ne želite da instalirate dodatni alat dokumentacija je dostupna na [adresi](http://alas.matf.bg.ac.rs/~mi16077/doxy_docs/html/).
    
    
 ## Autori
