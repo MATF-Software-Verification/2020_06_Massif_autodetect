@@ -22,3 +22,9 @@ U direktorijumu *samples* moguće je naći nekoliko jednostavnih .c programa koj
     
 ## Dokumentacija 
    [Link do tehničke dokumentacije](http://alas.matf.bg.ac.rs/~mi16077/doxy_docs/html/)
+   
+   
+## Autori
+   [Ana Jakovljević](https://github.com/ana-jakovljevic)  
+   [Velimir Bićanin](https://github.com/velimir97)  
+   [Nikola Janković](https://github.com/gianthead97)  
