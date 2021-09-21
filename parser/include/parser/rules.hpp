@@ -9,7 +9,8 @@ using x3::ulong_;
 
 
 /**
- * @namespace Contains all grammar rules that are required for parsing massif file 
+ * @namespace massifRules
+ * @brief Contains all grammar rules that are required for parsing massif file 
  * using boost spirit x3 library
 */
 namespace massifRules
@@ -48,7 +49,8 @@ namespace massifRules
 } // namespace massifRules
 
 /**
- * @namespace Contains all grammar rules that are required for parsing xtreememory file 
+ * @namespace xtmemoryRules
+ * @brief Contains all grammar rules that are required for parsing xtreememory file 
  * using boost spirit x3 library
 */
 namespace xtmemoryRules

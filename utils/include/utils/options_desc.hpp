@@ -6,7 +6,9 @@
 namespace po = boost::program_options;
 
 
-
+/**
+ * @brief Class for interpretation of command line arguments
+*/
 class CommandLineOpts
 {
 public:

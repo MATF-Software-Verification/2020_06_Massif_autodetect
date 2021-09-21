@@ -1,6 +1,10 @@
 #pragma once
 #include <iostream>
 
+
+/**
+ * @brief Class for executing external tools
+*/
 class ExecutorManager
 {    
 public:

@@ -4,6 +4,10 @@
 #include <iostream>
 #include <memory>
 
+
+/**
+ * @brief Representation of tree contained in one snapshot
+*/
 class Tree
 {
 public:
