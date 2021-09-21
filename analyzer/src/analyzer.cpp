@@ -206,7 +206,7 @@ void MassifAnalyzer::processSnapshots()
     bold_red();
     std::cout << std::endl << "OUTLIERS (bytes)" << std::endl;
     red();
-    std::cout << "Allocated bytes overcome one and a half time more than average program allocation size ";
+    std::cout << "Allocated bytes overcome one and a half times more than average program allocation size ";
     reset();
 
     std::cout << "(Average value of allocation is " << averageDifference << " bytes): " << std::endl;
